@@ -3,11 +3,13 @@
     <div class="column items-center">
       <q-img src="logo.png" />
 
-      <q-card class="my-card">
-        <q-form class="q-pa-xl q-pt-xl">
+      <q-card>
+        <q-form class="q-pa-lg">
+          <div class="text-weight-bold row justify-center">
+            Welcome to StockDiv
+          </div>
           <q-input
             v-model="email"
-            filled
             autofocus
             ref="refEmail"
             type="email"
@@ -17,7 +19,6 @@
 
           <q-input
             v-model="password"
-            filled
             :type="isPwd ? 'password' : 'text'"
             label="Password"
             class="q-my-sm"
@@ -34,7 +35,6 @@
           <q-input
             v-model="rePassword"
             v-show="newUser"
-            filled
             ref="refRePassword"
             :type="isRePwd ? 'password' : 'text'"
             label="Confirm password"
@@ -67,7 +67,6 @@
           </div>
           <q-input
             v-model="confirmationCode"
-            filled
             type="text"
             ref="confirmationCodeRef"
             hint="A confirmation code was sent to your email"
@@ -75,7 +74,7 @@
           />
           <div class="row justify-center">
             <q-btn
-              class="q-mt-sm"
+              class="q-mt-sm cursor-pointer"
               push
               color="primary"
               text-color="white"
@@ -85,7 +84,7 @@
             />
           </div>
 
-          <div class="row q-my-sm" style="color: #6161f5">
+          <div class="row q-my-sm">
             <div class="cursor-pointer q-mx-sm">
               <a target="_blank" @click="openPrivacyPolicyDialog"
                 >Privacy policy</a
@@ -111,12 +110,13 @@ import { ref } from 'vue';
 import { QInput } from 'quasar';
 import { stockdivStore } from 'src/stores/stockdivStore';
 import { useRouter } from 'vue-router';
+import { bus, showAPIError, showNotification, validateEmail } from 'src/utils/utils';
 
 export default defineComponent({
   name: 'loginPage',
   components: {},
 
-  setup() {    
+  setup() {
     const router = useRouter();
 
     return {
@@ -131,7 +131,7 @@ export default defineComponent({
       rememberMe: ref(false),
       confirmationCode: ref(''),
       codeSent: ref(false),
-      disableLetMeIn: ref<boolean>(false),      
+      disableLetMeIn: ref<boolean>(false),
       router,
       confirmationCodeRef: ref<QInput>(),
     };
@@ -169,10 +169,20 @@ export default defineComponent({
       }, 250);
     },
     letMeIn() {
+      if (!validateEmail(this.email)) {
+        showNotification('Invalid email');
+        return;
+      } else if (this.password.length < 8) {
+        showNotification('Password must have at least 8 characters');
+        return;
+      } else if (this.newUser && this.password !== this.rePassword) {
+        showNotification('Passwords do not match');
+        return;
+      }
       const command = this.codeSent || !this.newUser ? 'login' : 'register';
       this.disableLetMeIn = true;
       api
-        .post(`/user/${command}`, {
+        .post(`user/${command}`, {
           email: this.email,
           password: this.password,
           confirmationCode: this.codeSent ? this.confirmationCode : undefined,
@@ -189,26 +199,19 @@ export default defineComponent({
               const store = stockdivStore();
               store.token = response.data.token;
               this.router.push({ name: 'overview' });
+              bus.emit('loginSuccess', {});
             }
           } else {
-            this.$q.notify({
-              message: response.data.error
+            showNotification(
+              response.data.error
                 ? response.data.error
-                : 'Oops, there was a problem',
-              color: 'purple',
-            });
+                : 'Oops, there was a problem'
+            );
           }
         })
         .catch((err) => {
-          console.log('error:', err);
           this.disableLetMeIn = false;
-          const msg = err.response?.data
-            ? err.response?.data.error
-            : err.message;
-          this.$q.notify({
-            message: msg,
-            color: 'purple',
-          });
+          showAPIError(err);
         });
     },
   },
