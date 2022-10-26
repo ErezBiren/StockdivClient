@@ -1,6 +1,7 @@
 import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
 import { stockdivStore } from '../stores/stockdivStore';
+import VueApexCharts from 'vue3-apexcharts';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -8,7 +9,7 @@ declare module '@vue/runtime-core' {
   }
 }
 
-//const baseURLDev = 'http://localhost:3000/api/';
+//const baseURLProd = 'http://localhost:3000/api/';
 const baseURLProd = 'https://stockdiv.com:8445/api';
 
 const api = axios.create({ baseURL: baseURLProd });
@@ -28,6 +29,7 @@ api.interceptors.request.use(
 export default boot(({ app }) => {
   app.config.globalProperties.$axios = axios;
   app.config.globalProperties.$api = api;
+  app.use(VueApexCharts);
 });
 
 export { api };

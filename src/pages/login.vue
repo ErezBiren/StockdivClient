@@ -98,6 +98,9 @@
             </div>
           </div>
         </q-form>
+        <q-inner-loading :showing="disableLetMeIn">
+          <q-spinner-gears size="50px" color="primary" />
+        </q-inner-loading>
       </q-card>
     </div>
   </q-page>
@@ -110,7 +113,12 @@ import { ref } from 'vue';
 import { QInput } from 'quasar';
 import { stockdivStore } from 'src/stores/stockdivStore';
 import { useRouter } from 'vue-router';
-import { bus, showAPIError, showNotification, validateEmail } from 'src/utils/utils';
+import {
+  bus,
+  showAPIError,
+  showNotification,
+  validateEmail,
+} from 'src/utils/utils';
 
 export default defineComponent({
   name: 'loginPage',
@@ -118,6 +126,7 @@ export default defineComponent({
 
   setup() {
     const router = useRouter();
+    const store = stockdivStore();
 
     return {
       password: ref(''),
@@ -133,6 +142,7 @@ export default defineComponent({
       codeSent: ref(false),
       disableLetMeIn: ref<boolean>(false),
       router,
+      store,
       confirmationCodeRef: ref<QInput>(),
     };
   },
@@ -195,9 +205,8 @@ export default defineComponent({
               setTimeout(() => {
                 this.confirmationCodeRef?.focus();
               }, 500);
-            } else {
-              const store = stockdivStore();
-              store.token = response.data.token;
+            } else {              
+              this.store.token = response.data.token;
               this.router.push({ name: 'overview' });
               bus.emit('loginSuccess', {});
             }

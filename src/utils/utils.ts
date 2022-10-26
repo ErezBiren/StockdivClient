@@ -40,3 +40,16 @@ export const getTodayDate = (full: boolean): string => {
   if (!full) str = str.substring(0, 10);
   return str;
 };
+
+export const filters = {
+  formatToCurrency(value: number) {
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    });
+    return formatter.format(value);
+  },
+  formatToPercentage(value: number) {
+    return `${value.toFixed(2)}%`
+  }
+};

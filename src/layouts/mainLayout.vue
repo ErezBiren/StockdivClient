@@ -32,6 +32,14 @@
               :disable="store.portfolios.length < 3"
               hint="Portfolio"
             ></q-select>
+            <q-select
+              class="q-ml-sm"
+              v-model="selectedCurrency"
+              :options="currenciesOptions"
+              dense
+              disable
+              hint="Currency"
+            ></q-select>
             <q-space />
             <q-input
               hint="Search ticker/name"
@@ -86,7 +94,9 @@
   </q-layout>
 
   <q-dialog
-    :model-value="!userWithTransactions && store.token !== '' && showNoTransactionsDialog"
+    :model-value="
+      !userWithTransactions && store.token !== '' && showNoTransactionsDialog
+    "
     role="dialog"
     persistent
     aria-modal="true"
@@ -101,11 +111,11 @@
       <q-card-section>
         <div class="row">
           File format:<q-checkbox
-            dense
+            dense            
             v-model="isSharePrice"
             label="Share price instead of total price"
             checked-icon="task_alt"
-            class="q-mx-sm"
+            class="q-mx-sm text-weight-bold"
             unchecked-icon="highlight_off"
           />
         </div>
@@ -132,8 +142,10 @@
         </div>
       </q-card-section>
       <q-separator />
-      <q-card-actions align="right">
-        <q-btn flat @click="addManualTransaction()">Add transaction manually (See above search field)</q-btn>
+      <q-card-actions class="justify-right">
+        <q-btn flat @click="addManualTransaction()"
+          >Add transaction manually (See above search field)</q-btn
+        >
       </q-card-actions>
       <q-inner-loading :showing="importInProcess">
         <q-spinner-gears size="50px" color="primary" />
@@ -142,7 +154,7 @@
   </q-dialog>
 
   <q-dialog
-    v-model="showSettings"
+    v-model="showSettingsPopup"
     role="dialog"
     aria-modal="true"
     position="bottom"
@@ -150,7 +162,7 @@
     <q-card class="bg-info">
       <q-card-section class="row text-h5">Settings </q-card-section>
       <q-separator />
-      <q-card-section class="row">
+      <q-card-section class="row no-wrap">
         <q-input
           type="text"
           dense
@@ -165,15 +177,44 @@
         >
       </q-card-section>
       <q-separator />
-      <q-card-section>
+      <q-card-section class="row no-wrap">
         <q-select
           v-model="dateFormat"
           dense
           :options="dateFormatOptions"
           hint="Date format"
         />
-      </q-card-section> </q-card
-  ></q-dialog>
+        <q-icon
+          name="edit"
+          size="sm"
+          @click="saveSettings('dateFormat', dateFormat)"
+          class="cursor-pointer q-mt-sm"
+          ><q-tooltip>Save date format</q-tooltip></q-icon
+        >
+      </q-card-section>
+      <q-separator />
+      <q-card-section class="row no-wrap">
+        <q-input
+          v-model.number="defaultTax"
+          type="number"
+          dense
+          step="0.01"
+          hint="Default Tax"
+          :rules="[(val) => (val && val >= 0) || 'Default tax is missing']"
+        />
+        <q-icon
+          name="edit"
+          size="sm"
+          @click="saveSettings('defaultTax', defaultTax)"
+          class="cursor-pointer q-mt-sm"
+          ><q-tooltip>Save default tax</q-tooltip></q-icon
+        >
+      </q-card-section>
+      <q-inner-loading :showing="savingSettings">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script lang="ts">
@@ -205,7 +246,7 @@ export default defineComponent({
       store,
       router,
       userName: ref<string>(''),
-      showSettings: ref<boolean>(false),
+      showSettingsPopup: ref<boolean>(false),
       userNameEdit: ref<string>(''),
       userWithTransactions: ref<boolean>(true),
       csvToImport: ref(),
@@ -217,18 +258,48 @@ export default defineComponent({
       dataToSearch: ref<string>(''),
       searchListOptions: ref<{ ticker: string; name: string }[]>([]),
       showSearchResultsMenu: ref<boolean>(false),
-      selectedPortfolio: ref<string>(),
+      selectedPortfolio: ref<string>(''),
       showNoTransactionsDialog: ref<boolean>(false),
+      defaultTax: ref<number>(0),
+      savingSettings: ref<boolean>(false),
+      selectedCurrency: ref<string>('USD'),
+      currenciesOptions: ref<CurrencyCodeEnum[]>(
+        Object.values(CurrencyCodeEnum)
+      ),
       dateFormatOptions,
       searchTimer,
     };
   },
   methods: {
+    saveSettings(field: string, value: string | number) {
+      if (!this.defaultTax) this.defaultTax = 0;
+      this.savingSettings = true;
+      api
+        .patch('user/settings', {
+          field: field,
+          value: value,
+        })
+        .then((response) => {
+          this.savingSettings = false;
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            this.showSettingsPopup = false;
+            this.store.settings.defaultTax = this.defaultTax;
+            this.store.settings.dateFormat = this.dateFormat;
+            showNotification('Settings were successfully saved');
+          }
+        })
+        .catch((err) => {
+          this.savingSettings = false;
+          showAPIError(err);
+        });
+    },
     addManualTransaction() {
       this.showNoTransactionsDialog = false;
       setTimeout(() => {
         this.setFocusOnSearch();
-      }, 150); 
+      }, 150);
     },
     logout() {
       this.store.portfolios = [];
@@ -244,7 +315,7 @@ export default defineComponent({
     getSearchOptions() {
       this.showSearchResultsMenu = false;
       api
-        .get(`/ticker/search?searchText=${this.dataToSearch}`)
+        .get(`ticker/search?searchText=${this.dataToSearch}`)
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
@@ -296,6 +367,7 @@ export default defineComponent({
       const tickersList: string[] = this.checkImportContent(content);
       if (tickersList.length === 0) {
         this.importInProcess = false;
+        this.csvToImport = null;
         showNotification('No tickers to import');
         return;
       }
@@ -415,18 +487,34 @@ export default defineComponent({
     },
     openSettings() {
       this.userNameEdit = this.userName;
-      this.showSettings = true;
+      this.dateFormat = this.store.settings.dateFormat;
+      this.defaultTax = this.store.settings.defaultTax;
+      this.showSettingsPopup = true;
     },
     setUserName() {
       if (this.userName === this.userNameEdit) return;
       api
-        .put('user/name', { name: this.userNameEdit })
+        .put('user/name', this.userNameEdit)
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
           } else {
             showNotification('Your name was updated');
             this.getUserName();
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        });
+    },
+    getUserSettings() {
+      api
+        .get('user/settings')
+        .then((response) => {
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            this.store.settings = response.data;
           }
         })
         .catch((err) => {
@@ -440,7 +528,7 @@ export default defineComponent({
           if (response.data.error) {
             showNotification(response.data.error);
           } else {
-            this.userName = response.data.name;
+            this.userName = response.data;
           }
         })
         .catch((err) => {
@@ -450,6 +538,7 @@ export default defineComponent({
     runOnLoginSuccess() {
       this.getUserName();
       this.getPortfoliosList();
+      this.getUserSettings();
     },
     getPortfoliosList() {
       api
@@ -462,6 +551,7 @@ export default defineComponent({
             if (response.data.length === 2) {
               this.selectedPortfolio = response.data[1];
             } else this.selectedPortfolio = response.data[0];
+            this.store.selectedPortfolio = this.selectedPortfolio;
             bus.emit('hasTransactions', this.store.portfolios.length > 0);
             this.userWithTransactions = this.store.portfolios.length > 0;
             this.showNoTransactionsDialog = !this.userWithTransactions;
@@ -480,5 +570,16 @@ export default defineComponent({
     bus.off('loginSuccess', this.runOnLoginSuccess);
     bus.off('transactionChange', this.getPortfoliosList);
   },
+  watch: {
+    selectedPortfolio(newVal) {
+      this.store.selectedPortfolio = newVal;
+    },
+  },
 });
 </script>
+<style>
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  opacity: 0;
+}
+</style>

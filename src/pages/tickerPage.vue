@@ -91,8 +91,7 @@
             v-model.number="newTransactionShares"
             @keyup="sharesChange"
             @change="sharesChange"
-            type="number"
-            hide-spin-buttons
+            type="number"            
             step="0.0001"
             hint="Quantity"
             :rules="[(val) => (val && val > 0) || 'Quantity is missing']"
@@ -142,7 +141,7 @@
           />
         </q-card-section>
         <q-separator />
-        <q-card-actions align="right">
+        <q-card-actions class="justify-right">
           <q-btn
             icon="done"
             color="primary"
@@ -213,7 +212,7 @@ export default defineComponent({
       this.serverProcessing = true;
       api
         .get(
-          `/ticker/${this.ticker}/price?toCurrency=${this.tickerCurrency}&ofDate=${this.newTransactionWhen}`
+          `ticker/${this.ticker}/price?toCurrency=${this.tickerCurrency}&ofDate=${this.newTransactionWhen}`
         )
         .then((response) => {
           this.serverProcessing = false;
@@ -283,7 +282,7 @@ export default defineComponent({
     },
     getTickerName() {
       api
-        .get(`/ticker/${this.ticker}/name`)
+        .get(`ticker/${this.ticker}/name`)
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
@@ -297,7 +296,7 @@ export default defineComponent({
     },
     getTickerCurrency() {
       api
-        .get(`/ticker/${this.ticker}/currency`)
+        .get(`ticker/${this.ticker}/currency`)
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
