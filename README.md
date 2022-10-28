@@ -7,6 +7,8 @@ If you want to be inspired, go to https://www.stockdiv.com/login/#/ and register
 This project is developed using Quasar, built on Vue 3. You can read more here -> https://quasar.dev/.<br/>
 To see what components are available for you, open the Vue Components menu on the left.<br/>
 
+Click here -> https://trello.com/b/5eNi2iFk/stockdiv to view all current/future tasks of development.
+
 ### Start the app in development mode
 
 ```bash
