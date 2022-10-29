@@ -6,7 +6,7 @@
       <q-card>
         <q-form class="q-pa-lg">
           <div class="text-weight-bold row justify-center">
-            Welcome to StockDiv
+            Your portfolio. Your income.
           </div>
           <q-input
             v-model="email"
