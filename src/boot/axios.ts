@@ -2,6 +2,7 @@ import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
 import { stockdivStore } from '../stores/stockdivStore';
 import VueApexCharts from 'vue3-apexcharts';
+import VueHorizontalTimeline from 'vue-horizontal-timeline';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -30,6 +31,7 @@ export default boot(({ app }) => {
   app.config.globalProperties.$axios = axios;
   app.config.globalProperties.$api = api;
   app.use(VueApexCharts);
+  app.use(VueHorizontalTimeline);
 });
 
 export { api };

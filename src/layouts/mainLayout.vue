@@ -22,7 +22,14 @@
               <q-tooltip>Logout</q-tooltip>
             </q-icon>
             <q-space />
-            StockDiv 3.0.1
+            <q-btn
+              color="secondary"
+              label="Donate"
+              push
+              class="q-mt-xs"
+              size="small"
+              @click="gotoDonate()"
+            />
           </div>
           <div class="row no-wrap">
             <q-select
@@ -89,7 +96,7 @@
     </q-header>
 
     <q-page-container>
-      <router-view />
+      <router-view :key="$route.fullPath"/>
     </q-page-container>
   </q-layout>
 
@@ -111,7 +118,7 @@
       <q-card-section>
         <div class="row">
           File format:<q-checkbox
-            dense            
+            dense
             v-model="isSharePrice"
             label="Share price instead of total price"
             checked-icon="task_alt"
@@ -142,7 +149,7 @@
         </div>
       </q-card-section>
       <q-separator />
-      <q-card-actions class="justify-right">
+      <q-card-actions align="right">
         <q-btn flat @click="addManualTransaction()"
           >Add transaction manually (See above search field)</q-btn
         >
@@ -271,6 +278,9 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoDonate() {
+      window.open('https://www.paypal.me/StockDiv', '_blank');
+    },
     saveSettings(field: string, value: string | number) {
       if (!this.defaultTax) this.defaultTax = 0;
       this.savingSettings = true;

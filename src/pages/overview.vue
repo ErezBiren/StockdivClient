@@ -1,8 +1,8 @@
 <template>
   <q-page class="column" v-if="store.token !== '' && hasTransactions">
-    <q-card class="text-center q-ma-md shadow-8">
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Market Value</div>
+        <div class="text-h5">Your portfolio</div>
         <q-separator />
         <div :class="getMarketValueColor">
           {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon
@@ -10,16 +10,27 @@
           />{{ filters.formatToPercentage(plPercentage) }})
         </div>
         <div :class="getDailyChangeColor">
-          Daily change: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})
         </div>
+        <q-separator />
+        <apexchart
+          type="bar"
+          height="300"
+          ref="portfolioChart"
+          :options="portfolioChartOptions"
+          :series="portfolioChartSeries"
+        ></apexchart>
       </q-card-section>
+      <q-inner-loading :showing="marketValueLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8">
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Dividends</div>
+        <div class="text-h5">Your income</div>
         <q-separator />
         <div class="text-h6 q-mt-sm">
           So far: {{ filters.formatToCurrency(dividendsSoFar) }}
@@ -27,12 +38,8 @@
         <div class="text-h6 q-mt-sm">
           {{ nextDividendInfo }}
         </div>
-        <div class="row justify-center">
-          <div v-for="ticker in nextDivTickers" v-bind:key="ticker">
-            <q-img
-              :src="getTickerIcon(ticker)"
-              style="height: 32px; max-width: 32px"
-            />
+        <div class="row justify-center no-wrap">
+          <div v-for="(ticker, index) in nextDivTickers" v-bind:key="ticker">
             <q-chip
               clickable
               @click="clickNextDivTicker(ticker)"
@@ -40,11 +47,15 @@
               class="q-ma-sm"
               text-color="white"
             >
-              {{ getTicker(ticker) }}
+              {{ ticker }}
             </q-chip>
+            <q-img
+              :src="getTickerIcon(index)"
+              style="height: 32px; max-width: 32px"
+            />
           </div>
         </div>
-        <div class="row justify-center">
+        <div class="row justify-center no-wrap">
           <apexchart
             type="donut"
             :options="yearChartOptions"
@@ -62,12 +73,87 @@
           ></apexchart>
         </div>
       </q-card-section>
+      <q-inner-loading :showing="dividendsInfoLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <div class="text-h5">10 years income projection</div>
+        <q-separator />
+        <apexchart
+          type="bar"
+          height="300"
+          :options="projectionChartOptions"
+          :series="projectionChartSeries"
+        ></apexchart>
+      </q-card-section>
+      <q-inner-loading :showing="projectionLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <div class="text-h5">Diversification</div>
+        <q-separator />
+        <apexchart
+          type="donut"
+          height="300"
+          ref="diversificationChart"
+          :options="diversificationChartOptions"
+          :series="diversificationChartSeries"
+        ></apexchart>
+      </q-card-section>
+      <q-inner-loading :showing="diversificationLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <div class="text-h5">Performance</div>
+        <q-separator />
+        <apexchart
+          type="line"
+          height="300"
+          ref="performanceChart"
+          :options="performanceChartOptions"
+          :series="performanceChartSeries"
+        ></apexchart>
+      </q-card-section>
+      <q-inner-loading :showing="PerformanceLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <div class="text-h5">Timeline</div>
+        <q-separator />
+        <q-scroll-area
+          style="height: 475px; max-width: 100%"
+          :thumb-style="thumbStyle"
+        >
+          <vue-horizontal-timeline
+            :items="timelineItems"
+            timeline-background="#E1F5FE"
+          />
+        </q-scroll-area>
+      </q-card-section>
+      <q-inner-loading :showing="timelineLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
     </q-card>
   </q-page>
 </template>
 
 <script lang="ts">
+import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
+import { IDiversification } from 'src/utils/interfaces/IDiversification';
+import { IPriceLastYear } from 'src/utils/interfaces/IPriceLastYear';
 import { bus, showAPIError, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
@@ -77,16 +163,163 @@ export default defineComponent({
   name: 'overView',
   setup() {
     const store = stockdivStore();
+    let portfolioMarketValue = ref(0);
+    let portfolioCost = ref(0);
+    let dividendsSoFar = ref(0);
     return {
       store,
       filters,
       hasTransactions: ref<boolean>(false),
-      portfolioMarketValue: ref<number>(0),
-      portfolioCost: ref<number>(1),
-      dividendsSoFar: ref<number>(0),
+      timelineItems: ref<{ title: string; content: string }[]>([]),
+      timelineLoading: ref<boolean>(false),
+      portfolioMarketValue,
+      portfolioCost,
+      dividendsSoFar,
       nextDividendInfo: ref<string>(''),
       nextDivTickers: ref<string[]>([]),
+      nextDivTickersLogos: ref<string[]>([]),
+      marketValueLoading: ref<boolean>(false),
+      PerformanceLoading: ref<boolean>(false),
+      dividendsInfoLoading: ref<boolean>(false),
       dailyChange: ref<number>(0),
+      diversificationChart: ref<ApexCharts>(),
+      portfolioChart: ref<ApexCharts>(),
+      performanceChart: ref<ApexCharts>(),
+      thumbStyle: ref({
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#027be3',
+        width: '5px',
+        opacity: '0.75',
+      }),
+      performanceChartOptions: ref({
+        chart: {
+          type: 'line',
+          dropShadow: {
+            enabled: true,
+            color: '#000',
+            top: 18,
+            left: 7,
+            blur: 10,
+            opacity: 0.2,
+          },
+          toolbar: {
+            show: false,
+          },
+        },
+        colors: ['#77B6EA', '#a1ea77'],
+        dataLabels: {
+          enabled: false,
+          formatter: function (val: number) {
+            return filters.formatToPercentage(val);
+          },
+        },
+        stroke: {
+          curve: 'smooth',
+        },
+        title: {
+          show: true,
+          text: 'Your portfolio vs S&P500',
+        },
+        grid: {
+          borderColor: '#e7e7e7',
+          row: {
+            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+            opacity: 0.5,
+          },
+        },
+        markers: {
+          size: 1,
+        },
+        xaxis: {
+          categories: [],
+        },
+        yaxis: {
+          title: {
+            show: false,
+          },
+          labels: {
+            formatter: function (val: number) {
+              return filters.formatToPercentage(val);
+            },
+          },
+        },
+        legend: {
+          position: 'top',
+          horizontalAlign: 'right',
+          floating: true,
+          offsetY: -25,
+          offsetX: -5,
+        },
+      }),
+      diversificationChartOptions: ref({
+        tooltip: {
+          enabled: false,
+        },
+        legend: {
+          show: false,
+        },
+        colors: [
+          '#90EE90',
+          '#ADD8E6',
+          '#CBC3E3',
+          '#29008b',
+          '#89d74d',
+          '#bef0d2',
+          '#9179b3',
+          '#466c8e',
+          '#add06c',
+          '#aee104',
+          '#14f8b0',
+          '#361ae0',
+          '#f5e28f',
+          '#c45201',
+          '#f59095',
+          '#ecdc68',
+          '#6a0553',
+          '#94aa32',
+          '#a43afa',
+          '#adc181',
+        ],
+        labels: [],
+        fill: {
+          type: 'gradient',
+        },
+        dataLabels: {
+          enabled: true,
+          style: {
+            colors: ['black', 'black', 'black'],
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          formatter: function (val: number, opt: any) {
+            return filters.formatToPercentage(
+              opt.w.config.series[opt.seriesIndex]
+            );
+          },
+        },
+        plotOptions: {
+          pie: {
+            donut: {
+              labels: {
+                show: true,
+                name: {
+                  show: true,
+                },
+                value: {
+                  show: true,
+                  formatter: function (val: number) {
+                    return filters.formatToPercentage(Number(val));
+                  },
+                },
+                total: {
+                  show: false,
+                  showAlways: false,
+                },
+              },
+            },
+          },
+        },
+      }),
       weekChartOptions: ref({
         tooltip: {
           enabled: false,
@@ -246,153 +479,422 @@ export default defineComponent({
       yearlyChartSeries: ref<number[]>([]),
       monthlyChartSeries: ref<number[]>([]),
       weeklyChartSeries: ref<number[]>([]),
-      chartLabels: ref<string[]>(['Received', 'Remain', 'Projected']),
+      diversificationChartSeries: ref<number[]>([]),
+      diversificationChartLabels: ref<string[]>([]),
+      averageIncrease5y: ref<number>(0),
+      averageIncrease10y: ref<number>(0),
+      projectionLoading: ref<boolean>(false),
+      diversificationLoading: ref<boolean>(false),
+      projectionChartSeries: ref<[{ data: number[] }]>([{ data: [] }]),
+      performanceChartSeries: ref<{ name: string; data: number[] }[]>([
+        { name: '', data: [] },
+      ]),
+      portfolioChartSeries: ref<[{ data: number[] }]>([{ data: [0, 0, 0, 0] }]),
+      portfolioChartOptions: ref({
+        chart: {
+          type: 'bar',
+        },
+        colors: [
+          (data: { value: number, dataPointIndex: number }) => {
+            switch (data.dataPointIndex) {
+              case 0:
+                return '#55aaff';
+              case 1:
+                return portfolioMarketValue.value < portfolioCost.value
+                  ? '#ff4122'
+                  : '#72bf6a';
+              case 2: return portfolioMarketValue.value - portfolioCost.value < 0
+                  ? '#ff4122'
+                  : '#72bf6a';
+              case 3: return portfolioMarketValue.value - portfolioCost.value + dividendsSoFar.value < 0
+                  ? '#ff4122'
+                  : '#72bf6a';
+            }
+          },
+        ],
+        grid: {
+          yaxis: {
+            lines: {
+              show: false,
+            },
+          },
+        },
+        tooltip: {
+          enabled: false,
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 10,
+            dataLabels: {
+              position: 'top',
+            },
+          },
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val: number) {
+            return filters.formatToCurrency(val);
+          },
+          offsetY: -20,
+          style: {
+            fontSize: '12px',
+            colors: ['#304758'],
+          },
+        },
+        xaxis: {
+          categories: [
+            'Invested',
+            'Marke Value',
+            'Profit/Loss',
+            'Total Return',
+          ],
+          position: 'bottom',
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          crosshairs: {
+            fill: {
+              type: 'gradient',
+              gradient: {
+                colorFrom: '#D8E3F0',
+                colorTo: '#BED1E6',
+                stops: [0, 100],
+                opacityFrom: 0.4,
+                opacityTo: 0.5,
+              },
+            },
+          },
+        },
+        yaxis: {
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          labels: {
+            show: true,
+            formatter: function (val: number) {
+              return filters.formatToCurrency(val);
+            },
+          },
+        },
+        title: {
+          show: false,
+        },
+      }),
+      projectionChartOptions: ref({
+        chart: {
+          type: 'bar',
+        },
+        grid: {
+          yaxis: {
+            lines: {
+              show: false,
+            },
+          },
+        },
+        tooltip: {
+          enabled: false,
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 10,
+            dataLabels: {
+              position: 'top',
+            },
+          },
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val: number) {
+            return filters.formatToCurrency(val);
+          },
+          offsetY: -20,
+          style: {
+            fontSize: '12px',
+            colors: ['#304758'],
+          },
+        },
+        xaxis: {
+          categories: [
+            new Date().getFullYear() - 1,
+            new Date().getFullYear(),
+            new Date().getFullYear() + 1,
+            new Date().getFullYear() + 2,
+            new Date().getFullYear() + 3,
+            new Date().getFullYear() + 4,
+            new Date().getFullYear() + 5,
+            new Date().getFullYear() + 6,
+            new Date().getFullYear() + 7,
+            new Date().getFullYear() + 8,
+            new Date().getFullYear() + 9,
+            new Date().getFullYear() + 10,
+          ],
+          position: 'bottom',
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          crosshairs: {
+            fill: {
+              type: 'gradient',
+              gradient: {
+                colorFrom: '#D8E3F0',
+                colorTo: '#BED1E6',
+                stops: [0, 100],
+                opacityFrom: 0.4,
+                opacityTo: 0.5,
+              },
+            },
+          },
+        },
+        yaxis: {
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          labels: {
+            show: true,
+            formatter: function (val: number) {
+              return filters.formatToCurrency(val);
+            },
+          },
+        },
+        title: {
+          show: false,
+        },
+      }),
     };
   },
   methods: {
-    getTicker(ticker: string) {
-      if (ticker.includes('https'))
-        return ticker.substring(
-          ticker.lastIndexOf('/') + 1,
-          ticker.lastIndexOf('.')
-        );
-      else return ticker;
-    },
-    getTickerIcon(ticker: string) {
-      if (ticker.includes('https')) return ticker;
-      else return 'https://stockdiv.com/nologo.png';
+    getTickerIcon(index: number) {
+      return this.nextDivTickersLogos[index];
     },
     clickNextDivTicker(ticker: string) {
       showNotification(`Selected ${ticker}`);
     },
-    getPeriodsDividends() {
-      api
-        .get(`dividend/portfolio/${this.store.selectedPortfolio}/periods`)
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.yearlyChartSeries = response.data.yearDividend;
-            this.monthlyChartSeries = response.data.monthDividend;
-            this.weeklyChartSeries = response.data.weekDividend;
-          }
-        })
-        .catch((err) => {
+    runPortfolioRelatedAPIs() {
+      this.marketValueLoading = true;
+      axios
+        .all([
+          api.get(`portfolio/${this.store.selectedPortfolio}/marketValue`),
+          api.get(`portfolio/${this.store.selectedPortfolio}/cost`),
+          api.get(`portfolio/${this.store.selectedPortfolio}/dailyChange`),
+        ])
+        .then(
+          axios.spread((...responses) => {
+            this.portfolioMarketValue = responses[0].data;
+            this.portfolioCost = responses[1].data;
+            this.dailyChange = responses[2].data;
+            this.portfolioChartSeries[0].data[0] = this.portfolioCost;
+            this.portfolioChartSeries[0].data[1] = this.portfolioMarketValue;
+          })
+        )
+        .catch((err: AxiosError) => {
           showAPIError(err);
+        })
+        .finally(() => {
+          this.marketValueLoading = false;
         });
     },
-    getPortfolioDailyChange() {
-      api
-        .get(`portfolio/${this.store.selectedPortfolio}/dailyChange`)
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.dailyChange = response.data;
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        });
-    },
-    getPortfolioMarketValue() {
-      api
-        .get(`portfolio/${this.store.selectedPortfolio}/marketValue`)
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.portfolioMarketValue = response.data;
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        });
-    },
-    getPortfolioCost() {
-      api
-        .get(`portfolio/${this.store.selectedPortfolio}/cost`)
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.portfolioCost = response.data;
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        });
-    },
-    getNextDividendForPortfolio() {
-      api
-        .get(`dividend/portfolio/${this.store.selectedPortfolio}/next`)
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            if (response.data.days === -1)
+    runDividendsRelatedAPIs() {
+      this.dividendsInfoLoading = true;
+      axios
+        .all([
+          api.get(`dividend/portfolio/${this.store.selectedPortfolio}/soFar`),
+          api.get(`dividend/portfolio/${this.store.selectedPortfolio}/next`),
+          api.get(`dividend/portfolio/${this.store.selectedPortfolio}/periods`),
+        ])
+        .then(
+          axios.spread((...responses) => {
+            this.dividendsSoFar = responses[0].data;
+            this.portfolioChartSeries[0].data[2] =
+              this.portfolioMarketValue - this.portfolioCost;
+            this.portfolioChartSeries[0].data[3] =
+              this.portfolioMarketValue -
+              this.portfolioCost +
+              this.dividendsSoFar;
+
+            if (responses[1].data.days === -1)
               this.nextDividendInfo = 'Nothing in the next 31 days...';
-            else if (response.data.days === 0)
+            else if (responses[1].data.days === 0)
               this.nextDividendInfo = `Today you should get ${filters.formatToCurrency(
-                response.data.amount
+                responses[1].data.amount
               )}`;
-            else if (response.data.days === 1)
+            else if (responses[1].data.days === 1)
               this.nextDividendInfo = `Tomorrow you should get ${filters.formatToCurrency(
-                response.data.result.amount
+                responses[1].data.result.amount
               )}`;
             else
               this.nextDividendInfo = `In ${
-                response.data.days
+                responses[1].data.days
               } days you should get ${filters.formatToCurrency(
-                response.data.amount
+                responses[1].data.amount
               )}`;
-            this.nextDivTickers = response.data.tickers;
-          }
-        })
-        .catch((err) => {
+            this.nextDivTickers = responses[1].data.tickers;
+            this.nextDivTickersLogos = responses[1].data.logos;
+
+            this.yearlyChartSeries = responses[2].data.yearDividend;
+            this.monthlyChartSeries = responses[2].data.monthDividend;
+            this.weeklyChartSeries = responses[2].data.weekDividend;
+          })
+        )
+        .catch((err: AxiosError) => {
           showAPIError(err);
+        })
+        .finally(() => {
+          this.dividendsInfoLoading = false;
         });
     },
-    getDividendsSoFarForPortfolio() {
-      api
-        .get(`dividend/portfolio/${this.store.selectedPortfolio}/soFar`)
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.dividendsSoFar = response.data;
-          }
-        })
-        .catch((err) => {
+    runProjectionRelatedAPIs() {
+      this.projectionLoading = true;
+      axios
+        .all([
+          api.get(
+            `dividend/portfolio/${this.store.selectedPortfolio}/averageIncrease`
+          ),
+          api.get(
+            `dividend/portfolio/${this.store.selectedPortfolio}/incomeLastYear`
+          ),
+        ])
+        .then(
+          axios.spread((...responses) => {
+            this.averageIncrease10y = responses[0].data.averageIncrease10y;
+            this.averageIncrease5y = responses[0].data.averageIncrease5y;
+            let incomeLastYear: number = responses[1].data;
+            for (let i = 0; i < 12; i++) {
+              this.projectionChartSeries[0].data.push(
+                incomeLastYear *
+                  (1 +
+                    (i < 5 ? this.averageIncrease5y : this.averageIncrease10y))
+              );
+              incomeLastYear *=
+                1 + (i < 5 ? this.averageIncrease5y : this.averageIncrease10y);
+            }
+          })
+        )
+        .catch((err: AxiosError) => {
           showAPIError(err);
+        })
+        .finally(() => {
+          this.projectionLoading = false;
+        });
+    },
+    runDiversificationRelatedAPIs() {
+      this.diversificationLoading = true;
+      axios
+        .all([api.get(`portfolio/${this.store.selectedPortfolio}/diversity`)])
+        .then(
+          axios.spread((...responses) => {
+            if (this.diversificationChart)
+              this.diversificationChart.updateOptions({
+                labels: responses[0].data.map(
+                  (item: IDiversification) => item.sector
+                ),
+              });
+            this.diversificationChartSeries = responses[0].data.map(
+              (item: IDiversification) => item.percentage
+            );
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.diversificationLoading = false;
+        });
+    },
+    runPerformanceRelatedAPIs() {
+      this.PerformanceLoading = true;
+      axios
+        .all([api.get(`portfolio/${this.store.selectedPortfolio}/performance`)])
+        .then(
+          axios.spread((...responses) => {
+            if (this.performanceChart)
+              this.performanceChart.updateOptions({
+                xaxis: {
+                  categories: responses[0].data.sp500.map(
+                    (item: IPriceLastYear) => item.valueDate
+                  ),
+                },
+              });
+            this.performanceChartSeries = [
+              {
+                name: 'S&P500',
+                data: responses[0].data.sp500.map(
+                  (item: IPriceLastYear) => item.value
+                ),
+              },
+              {
+                name: 'Your portfolio',
+                data: responses[0].data.thePortfolio.map(
+                  (item: IPriceLastYear) => item.value
+                ),
+              },
+            ];
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.PerformanceLoading = false;
+        });
+    },
+    runTimelineRelatedAPIs() {
+      this.timelineLoading = true;
+      axios
+        .all([api.get(`portfolio/${this.store.selectedPortfolio}/timeline`)])
+        .then(
+          axios.spread((...responses) => {
+            this.timelineItems = responses[0].data;
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.timelineLoading = false;
         });
     },
     runWhenHasTransactions(has: boolean) {
       this.hasTransactions = has;
       if (has) {
-        this.getPortfolioMarketValue();
-        this.getPortfolioCost();
-        this.getDividendsSoFarForPortfolio();
-        this.getNextDividendForPortfolio();
-        this.getPortfolioDailyChange();
-        this.getPeriodsDividends();
+        this.runPortfolioRelatedAPIs();
+        this.runDividendsRelatedAPIs();
+        this.runProjectionRelatedAPIs();
+        this.runDiversificationRelatedAPIs();
+        this.runPerformanceRelatedAPIs();
+        this.runTimelineRelatedAPIs();
       }
     },
   },
   computed: {
     dailyChangePercentage(): number {
-      return this.portfolioMarketValue - this.dailyChange !== 0
-        ? (this.dailyChange / (this.portfolioMarketValue - this.dailyChange)) *
-            100
-        : 0;
+      if (this.portfolioMarketValue - this.dailyChange !== 0) {
+        return (
+          (this.dailyChange / (this.portfolioMarketValue - this.dailyChange)) *
+          100
+        );
+      } else return 0;
     },
     plPercentage(): number {
-      return (
-        (Math.abs(this.portfolioMarketValue - this.portfolioCost) /
-          this.portfolioCost) *
-        100 *
-        (this.portfolioMarketValue > this.portfolioCost ? 1 : -1)
-      );
+      if (this.portfolioCost !== 0) {
+        return (
+          (Math.abs(this.portfolioMarketValue - this.portfolioCost) /
+            this.portfolioCost) *
+          100 *
+          (this.portfolioMarketValue > this.portfolioCost ? 1 : -1)
+        );
+      } else return 0;
     },
     getDailyArrow(): string {
       return this.dailyChange > 0 ? 'trending_up' : 'trending_down';
@@ -408,9 +910,9 @@ export default defineComponent({
         : 'text-subtitle2 text-green q-ml-sm q-mt-sm';
     },
     getMarketValueColor(): string {
-      return this.portfolioMarketValue - this.portfolioCost > 0
-        ? 'text-h6 text-green q-mt-sm'
-        : 'text-h6 text-red q-mt-sm';
+      return this.portfolioMarketValue - this.portfolioCost < 0
+        ? 'text-h6 text-red q-mt-sm'
+        : 'text-h6 text-green q-mt-sm';
     },
   },
   mounted() {

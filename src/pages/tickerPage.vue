@@ -1,6 +1,7 @@
 <template>
   <q-page padding>
     <q-card class="justify-center text-center shadow-10">
+      <q-img :src="tickerLogo" style="height: 32px; max-width: 32px" />
       <q-card-section> {{ ticker }}: {{ tickerName }} </q-card-section>
       <q-separator />
       <q-card-actions class="justify-center">
@@ -91,7 +92,7 @@
             v-model.number="newTransactionShares"
             @keyup="sharesChange"
             @change="sharesChange"
-            type="number"            
+            type="number"
             step="0.0001"
             hint="Quantity"
             :rules="[(val) => (val && val > 0) || 'Quantity is missing']"
@@ -141,7 +142,7 @@
           />
         </q-card-section>
         <q-separator />
-        <q-card-actions class="justify-right">
+        <q-card-actions align="right">
           <q-btn
             icon="done"
             color="primary"
@@ -163,7 +164,12 @@
 
 <script lang="ts">
 import { api } from 'src/boot/axios';
-import { bus, getTodayDate, showAPIError, showNotification } from 'src/utils/utils';
+import {
+  bus,
+  getTodayDate,
+  showAPIError,
+  showNotification,
+} from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { stockdivStore } from '../stores/stockdivStore';
@@ -174,9 +180,7 @@ export default defineComponent({
   setup() {
     const store = stockdivStore();
     function eventOptions(date: string) {
-      return (
-        date <= getTodayDate(false).replace(/-/g, '/')
-      );
+      return date <= getTodayDate(false).replace(/-/g, '/');
     }
 
     return {
@@ -191,9 +195,8 @@ export default defineComponent({
       newTransactionTotal: ref<number>(0),
       newTransactionSharePrice: ref<number>(0),
       serverProcessing: ref<boolean>(false),
-      newTransactionWhen: ref<string>(
-        getTodayDate(false)
-      ),
+      tickerLogo: ref<string>(''),
+      newTransactionWhen: ref<string>(getTodayDate(false)),
       store,
       eventOptions,
     };
@@ -280,6 +283,20 @@ export default defineComponent({
     addPurchase() {
       this.addPurchaseDialogShow = true;
     },
+    getTickerLogo() {
+      api
+        .get(`ticker/${this.ticker}/logo`)
+        .then((response) => {
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            this.tickerLogo = response.data;
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        });
+    },
     getTickerName() {
       api
         .get(`ticker/${this.ticker}/name`)
@@ -313,9 +330,13 @@ export default defineComponent({
     this.ticker = useRoute().params.ticker as string;
     this.tickerPortfolio = useRoute().params.portfolio as string;
     if (this.tickerPortfolio !== 'All Portfolios')
-      this.newTransactionPortfolio = this.tickerPortfolio === 'undefined'? 'Portfolio': this.tickerPortfolio;
+      this.newTransactionPortfolio =
+        this.tickerPortfolio === 'undefined'
+          ? 'Portfolio'
+          : this.tickerPortfolio;
     else this.newTransactionPortfolio = this.store.portfolios[0];
     this.getTickerName();
+    this.getTickerLogo();
     this.getTickerCurrency();
   },
   computed: {
