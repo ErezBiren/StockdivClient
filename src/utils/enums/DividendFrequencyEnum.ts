@@ -1,0 +1,15 @@
+export enum DividendFrequencyEnum {
+    None,
+    Annual,
+    Semi_Annual,
+    dummy3,
+    Quarterly,
+    dummy5,
+    dummy6,
+    dummy7,
+    dummy8,
+    dummy9,
+    dummy10,
+    dummy11,
+    Monthly,
+}

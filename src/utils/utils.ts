@@ -27,11 +27,14 @@ export const isNumber = (str: string): boolean => {
   return !Number.isNaN(Number(str));
 };
 
-export const showAPIError = (apiError: AxiosError) => {
-  let helper: AxiosResponse | null = null;
-  let err: string;
-  if (apiError.response) helper = apiError.response;
-  if (helper == null) err = apiError.message; else err = helper.data.error;
+export const showAPIError = (apiError: unknown) => {
+  let err = 'Unknown error';
+  if (apiError instanceof AxiosError) {
+    let helper: AxiosResponse | null = null;
+    if (apiError.response) helper = apiError.response;
+    if (helper == null) err = apiError.message;
+    else err = helper.data.error;
+  } else if (apiError instanceof Error) err = apiError.message;
   showNotification(err);
 };
 
@@ -50,6 +53,6 @@ export const filters = {
     return formatter.format(value);
   },
   formatToPercentage(value: number) {
-    return `${value.toFixed(2)}%`
-  }
+    return `${value.toFixed(2)}%`;
+  },
 };

@@ -1,8 +1,11 @@
 <template>
-  <q-page class="column" v-if="store.token !== '' && hasTransactions">
+  <q-page
+    class="column"
+    v-if="store.token !== '' && store.portfolios.length > 0"
+  >
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Your portfolio</div>
+        <div class="text-h5">{{ store.selectedPortfolio }}</div>
         <q-separator />
         <div :class="getMarketValueColor">
           {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon
@@ -30,10 +33,8 @@
 
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Your income</div>
-        <q-separator />
         <div class="text-h6 q-mt-sm">
-          So far: {{ filters.formatToCurrency(dividendsSoFar) }}
+          Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
         </div>
         <div class="text-h6 q-mt-sm">
           {{ nextDividendInfo }}
@@ -80,8 +81,6 @@
 
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">10 years income projection</div>
-        <q-separator />
         <apexchart
           type="bar"
           height="300"
@@ -96,8 +95,6 @@
 
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Diversification</div>
-        <q-separator />
         <apexchart
           type="donut"
           height="300"
@@ -113,8 +110,6 @@
 
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Performance</div>
-        <q-separator />
         <apexchart
           type="line"
           height="300"
@@ -153,8 +148,8 @@
 import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
 import { IDiversification } from 'src/utils/interfaces/IDiversification';
-import { IPriceLastYear } from 'src/utils/interfaces/IPriceLastYear';
-import { bus, showAPIError, showNotification } from 'src/utils/utils';
+import { IPriceAndDate } from 'src/utils/interfaces/IPriceAndDate';
+import { showAPIError, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
@@ -164,16 +159,15 @@ export default defineComponent({
   setup() {
     const store = stockdivStore();
     let portfolioMarketValue = ref(0);
-    let portfolioCost = ref(0);
+    let portfolioInvested = ref(0);
     let dividendsSoFar = ref(0);
     return {
       store,
       filters,
-      hasTransactions: ref<boolean>(false),
       timelineItems: ref<{ title: string; content: string }[]>([]),
       timelineLoading: ref<boolean>(false),
       portfolioMarketValue,
-      portfolioCost,
+      portfolioInvested,
       dividendsSoFar,
       nextDividendInfo: ref<string>(''),
       nextDivTickers: ref<string[]>([]),
@@ -219,6 +213,7 @@ export default defineComponent({
         },
         title: {
           show: true,
+          align: 'center',
           text: 'Your portfolio vs S&P500',
         },
         grid: {
@@ -255,6 +250,11 @@ export default defineComponent({
       diversificationChartOptions: ref({
         tooltip: {
           enabled: false,
+        },
+        title: {
+          show: true,
+          align: 'center',
+          text: 'Diversification',
         },
         legend: {
           show: false,
@@ -500,13 +500,18 @@ export default defineComponent({
               case 0:
                 return '#55aaff';
               case 1:
-                return portfolioMarketValue.value < portfolioCost.value
+                return portfolioMarketValue.value < portfolioInvested.value
                   ? '#ff4122'
                   : '#72bf6a';
-              case 2: return portfolioMarketValue.value - portfolioCost.value < 0
+              case 2:
+                return portfolioMarketValue.value - portfolioInvested.value < 0
                   ? '#ff4122'
                   : '#72bf6a';
-              case 3: return portfolioMarketValue.value - portfolioCost.value + dividendsSoFar.value < 0
+              case 3:
+                return portfolioMarketValue.value -
+                  portfolioInvested.value +
+                  dividendsSoFar.value <
+                  0
                   ? '#ff4122'
                   : '#72bf6a';
             }
@@ -544,7 +549,7 @@ export default defineComponent({
         xaxis: {
           categories: [
             'Invested',
-            'Marke Value',
+            'Market Value',
             'Profit/Loss',
             'Total Return',
           ],
@@ -589,6 +594,11 @@ export default defineComponent({
       projectionChartOptions: ref({
         chart: {
           type: 'bar',
+        },
+        title: {
+          show: true,
+          text: '10 years projection',
+          align: 'center',
         },
         grid: {
           yaxis: {
@@ -668,9 +678,6 @@ export default defineComponent({
             },
           },
         },
-        title: {
-          show: false,
-        },
       }),
     };
   },
@@ -686,16 +693,22 @@ export default defineComponent({
       axios
         .all([
           api.get(`portfolio/${this.store.selectedPortfolio}/marketValue`),
-          api.get(`portfolio/${this.store.selectedPortfolio}/cost`),
+          api.get(`portfolio/${this.store.selectedPortfolio}/invested`),
           api.get(`portfolio/${this.store.selectedPortfolio}/dailyChange`),
         ])
         .then(
           axios.spread((...responses) => {
             this.portfolioMarketValue = responses[0].data;
-            this.portfolioCost = responses[1].data;
+            this.portfolioInvested = responses[1].data;
             this.dailyChange = responses[2].data;
-            this.portfolioChartSeries[0].data[0] = this.portfolioCost;
+            this.portfolioChartSeries[0].data[0] = this.portfolioInvested;
             this.portfolioChartSeries[0].data[1] = this.portfolioMarketValue;
+            this.portfolioChartSeries[0].data[2] =
+              this.portfolioMarketValue - this.portfolioInvested;
+            this.portfolioChartSeries[0].data[3] =
+              this.portfolioMarketValue -
+              this.portfolioInvested +
+              this.dividendsSoFar;
           })
         )
         .catch((err: AxiosError) => {
@@ -716,11 +729,9 @@ export default defineComponent({
         .then(
           axios.spread((...responses) => {
             this.dividendsSoFar = responses[0].data;
-            this.portfolioChartSeries[0].data[2] =
-              this.portfolioMarketValue - this.portfolioCost;
             this.portfolioChartSeries[0].data[3] =
               this.portfolioMarketValue -
-              this.portfolioCost +
+              this.portfolioInvested +
               this.dividendsSoFar;
 
             if (responses[1].data.days === -1)
@@ -777,7 +788,7 @@ export default defineComponent({
                     (i < 5 ? this.averageIncrease5y : this.averageIncrease10y))
               );
               incomeLastYear *=
-                1 + (i < 5 ? this.averageIncrease5y : this.averageIncrease10y);
+                (1 + (i < 5 ? this.averageIncrease5y : this.averageIncrease10y));
             }
           })
         )
@@ -822,7 +833,7 @@ export default defineComponent({
               this.performanceChart.updateOptions({
                 xaxis: {
                   categories: responses[0].data.sp500.map(
-                    (item: IPriceLastYear) => item.valueDate
+                    (item: IPriceAndDate) => item.valueDate
                   ),
                 },
               });
@@ -830,13 +841,13 @@ export default defineComponent({
               {
                 name: 'S&P500',
                 data: responses[0].data.sp500.map(
-                  (item: IPriceLastYear) => item.value
+                  (item: IPriceAndDate) => item.value
                 ),
               },
               {
                 name: 'Your portfolio',
                 data: responses[0].data.thePortfolio.map(
-                  (item: IPriceLastYear) => item.value
+                  (item: IPriceAndDate) => item.value
                 ),
               },
             ];
@@ -865,16 +876,13 @@ export default defineComponent({
           this.timelineLoading = false;
         });
     },
-    runWhenHasTransactions(has: boolean) {
-      this.hasTransactions = has;
-      if (has) {
-        this.runPortfolioRelatedAPIs();
-        this.runDividendsRelatedAPIs();
-        this.runProjectionRelatedAPIs();
-        this.runDiversificationRelatedAPIs();
-        this.runPerformanceRelatedAPIs();
-        this.runTimelineRelatedAPIs();
-      }
+    runWhenHasTransactions() {
+      this.runPortfolioRelatedAPIs();
+      this.runDividendsRelatedAPIs();
+      this.runProjectionRelatedAPIs();
+      this.runDiversificationRelatedAPIs();
+      this.runPerformanceRelatedAPIs();
+      this.runTimelineRelatedAPIs();
     },
   },
   computed: {
@@ -887,22 +895,22 @@ export default defineComponent({
       } else return 0;
     },
     plPercentage(): number {
-      if (this.portfolioCost !== 0) {
+      if (this.portfolioInvested !== 0) {
         return (
-          (Math.abs(this.portfolioMarketValue - this.portfolioCost) /
-            this.portfolioCost) *
+          (Math.abs(this.portfolioMarketValue - this.portfolioInvested) /
+            this.portfolioInvested) *
           100 *
-          (this.portfolioMarketValue > this.portfolioCost ? 1 : -1)
+          (this.portfolioMarketValue > this.portfolioInvested ? 1 : -1)
         );
       } else return 0;
     },
     getDailyArrow(): string {
-      return this.dailyChange > 0 ? 'trending_up' : 'trending_down';
+      return this.dailyChange < 0 ? 'trending_down' : 'trending_up';
     },
     getArrow(): string {
-      return this.portfolioMarketValue - this.portfolioCost > 0
-        ? 'trending_up'
-        : 'trending_down';
+      return this.portfolioMarketValue - this.portfolioInvested < 0
+        ? 'trending_down'
+        : 'trending_up';
     },
     getDailyChangeColor(): string {
       return this.dailyChange < 0
@@ -910,16 +918,18 @@ export default defineComponent({
         : 'text-subtitle2 text-green q-ml-sm q-mt-sm';
     },
     getMarketValueColor(): string {
-      return this.portfolioMarketValue - this.portfolioCost < 0
+      return this.portfolioMarketValue - this.portfolioInvested < 0
         ? 'text-h6 text-red q-mt-sm'
         : 'text-h6 text-green q-mt-sm';
     },
+    calculateTotalReturn(): number {
+      return (
+        this.portfolioMarketValue - this.portfolioInvested + this.dividendsSoFar
+      );
+    },
   },
   mounted() {
-    bus.on('hasTransactions', this.runWhenHasTransactions);
-  },
-  unmounted() {
-    bus.off('hasTransactions', this.runWhenHasTransactions);
+    if (this.store.portfolios.length > 0) this.runWhenHasTransactions();
   },
 });
 </script>

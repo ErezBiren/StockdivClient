@@ -11,16 +11,27 @@
               class="cursor-pointer q-my-xs q-mx-sm"
               @click="openSettings()"
             >
-              <q-tooltip>Settings</q-tooltip>
+              <q-tooltip class="bg-indigo">Settings</q-tooltip>
             </q-icon>
+
+            <q-icon
+              color="blue"
+              name="home"
+              class="cursor-pointer q-my-xs q-mx-sm"
+              @click="gotoOverview()"
+            >
+              <q-tooltip class="bg-indigo">Overview</q-tooltip>
+            </q-icon>
+
             <q-icon
               color="blue"
               name="logout"
               class="cursor-pointer q-my-xs q-mx-sm"
               @click="logout()"
             >
-              <q-tooltip>Logout</q-tooltip>
+              <q-tooltip class="bg-indigo">Logout</q-tooltip>
             </q-icon>
+
             <q-space />
             <q-btn
               color="secondary"
@@ -96,14 +107,12 @@
     </q-header>
 
     <q-page-container>
-      <router-view :key="$route.fullPath"/>
+      <router-view :key="$route.fullPath" />
     </q-page-container>
   </q-layout>
 
   <q-dialog
-    :model-value="
-      !userWithTransactions && store.token !== '' && showNoTransactionsDialog
-    "
+    :model-value="store.token !== '' && showNoTransactionsDialog"
     role="dialog"
     persistent
     aria-modal="true"
@@ -144,7 +153,9 @@
             class="primary"
             @click="openImportFile()"
             label="Import"
-            ><q-tooltip>Select a file to import</q-tooltip></q-btn
+            ><q-tooltip class="bg-indigo"
+              >Select a file to import</q-tooltip
+            ></q-btn
           >
         </div>
       </q-card-section>
@@ -180,7 +191,7 @@
           size="sm"
           @click="setUserName()"
           class="cursor-pointer q-mt-sm"
-          ><q-tooltip>Update your name</q-tooltip></q-icon
+          ><q-tooltip class="bg-indigo">Update your name</q-tooltip></q-icon
         >
       </q-card-section>
       <q-separator />
@@ -196,7 +207,7 @@
           size="sm"
           @click="saveSettings('dateFormat', dateFormat)"
           class="cursor-pointer q-mt-sm"
-          ><q-tooltip>Save date format</q-tooltip></q-icon
+          ><q-tooltip class="bg-indigo">Save date format</q-tooltip></q-icon
         >
       </q-card-section>
       <q-separator />
@@ -214,7 +225,7 @@
           size="sm"
           @click="saveSettings('defaultTax', defaultTax)"
           class="cursor-pointer q-mt-sm"
-          ><q-tooltip>Save default tax</q-tooltip></q-icon
+          ><q-tooltip class="bg-indigo">Save default tax</q-tooltip></q-icon
         >
       </q-card-section>
       <q-inner-loading :showing="savingSettings">
@@ -233,6 +244,7 @@ import { date, QInput } from 'quasar';
 import { CurrencyCodeEnum } from 'src/utils/enums/CurrencyCodeEnum';
 import { ITransactionData } from 'src/utils/interfaces/ITransactionData';
 import { useRouter } from 'vue-router';
+import axios, { AxiosError } from 'axios';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -255,7 +267,6 @@ export default defineComponent({
       userName: ref<string>(''),
       showSettingsPopup: ref<boolean>(false),
       userNameEdit: ref<string>(''),
-      userWithTransactions: ref<boolean>(true),
       csvToImport: ref(),
       importFileContent,
       importInProcess: ref<boolean>(false),
@@ -278,6 +289,9 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoOverview() {
+      this.router.push({ path: '/overview' });
+    },
     gotoDonate() {
       window.open('https://www.paypal.me/StockDiv', '_blank');
     },
@@ -290,7 +304,6 @@ export default defineComponent({
           value: value,
         })
         .then((response) => {
-          this.savingSettings = false;
           if (response.data.error) {
             showNotification(response.data.error);
           } else {
@@ -301,8 +314,10 @@ export default defineComponent({
           }
         })
         .catch((err) => {
-          this.savingSettings = false;
           showAPIError(err);
+        })
+        .finally(() => {
+          this.savingSettings = false;
         });
     },
     addManualTransaction() {
@@ -317,6 +332,7 @@ export default defineComponent({
       this.router.push({ path: '/login' });
     },
     gotoTickerPage(ticker: string) {
+      if (ticker === 'Nothing found') return;
       this.router.push({ path: `/ticker/${this.selectedPortfolio}/${ticker}` });
     },
     setFocusOnSearch() {
@@ -335,7 +351,6 @@ export default defineComponent({
           }
         })
         .catch((err) => {
-          this.importInProcess = false;
           showAPIError(err);
         });
     },
@@ -478,7 +493,6 @@ export default defineComponent({
             this.importInProcess = false;
             showNotification('Transactions were successfully imported');
             bus.emit('transactionChange', {});
-            this.getPortfoliosList();
           }
         })
         .catch((err) => {
@@ -510,35 +524,7 @@ export default defineComponent({
             showNotification(response.data.error);
           } else {
             showNotification('Your name was updated');
-            this.getUserName();
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        });
-    },
-    getUserSettings() {
-      api
-        .get('user/settings')
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.store.settings = response.data;
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        });
-    },
-    getUserName() {
-      api
-        .get('user/name')
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.userName = response.data;
+            this.userName = this.userNameEdit;
           }
         })
         .catch((err) => {
@@ -546,39 +532,39 @@ export default defineComponent({
         });
     },
     runOnLoginSuccess() {
-      this.getUserName();
-      this.getPortfoliosList();
-      this.getUserSettings();
-    },
-    getPortfoliosList() {
-      api
-        .get('portfolio/all')
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.store.portfolios = response.data;
-            if (response.data.length === 2) {
-              this.selectedPortfolio = response.data[1];
-            } else this.selectedPortfolio = response.data[0];
+      axios
+        .all([
+          api.get('user/name'),
+          api.get('portfolio/all'),
+          api.get('user/settings'),
+        ])
+        .then(
+          axios.spread(async (...responses) => {
+            this.userName = responses[0].data;
+            this.store.portfolios = responses[1].data;
+            if (responses[1].data.length === 2) {
+              this.selectedPortfolio = responses[1].data[1];
+            } else this.selectedPortfolio = responses[1].data[0];
             this.store.selectedPortfolio = this.selectedPortfolio;
-            bus.emit('hasTransactions', this.store.portfolios.length > 0);
-            this.userWithTransactions = this.store.portfolios.length > 0;
-            this.showNoTransactionsDialog = !this.userWithTransactions;
-          }
-        })
-        .catch((err) => {
+            this.showNoTransactionsDialog = this.store.portfolios.length === 0;
+            this.store.settings = responses[2].data;
+            if (this.router.currentRoute.value.fullPath.includes('login'))
+              this.router.push({ path: '/overview' });
+            else this.router.go(0);
+          })
+        )
+        .catch((err: AxiosError) => {
           showAPIError(err);
         });
     },
   },
   mounted() {
     bus.on('loginSuccess', this.runOnLoginSuccess);
-    bus.on('transactionChange', this.getPortfoliosList);
+    bus.on('transactionChange', this.runOnLoginSuccess);
   },
   beforeUnmount() {
     bus.off('loginSuccess', this.runOnLoginSuccess);
-    bus.off('transactionChange', this.getPortfoliosList);
+    bus.off('transactionChange', this.runOnLoginSuccess);
   },
   watch: {
     selectedPortfolio(newVal) {

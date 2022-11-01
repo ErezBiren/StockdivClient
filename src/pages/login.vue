@@ -198,16 +198,14 @@ export default defineComponent({
           confirmationCode: this.codeSent ? this.confirmationCode : undefined,
         })
         .then((response) => {
-          this.disableLetMeIn = false;
           if (response.data.result || response.data.token) {
             if (response.data.result) {
               this.codeSent = true;
               setTimeout(() => {
                 this.confirmationCodeRef?.focus();
               }, 500);
-            } else {              
-              this.store.token = response.data.token;
-              this.router.push({ name: 'overview' });
+            } else {
+              this.store.token = response.data.token;              
               bus.emit('loginSuccess', {});
             }
           } else {
@@ -219,8 +217,10 @@ export default defineComponent({
           }
         })
         .catch((err) => {
-          this.disableLetMeIn = false;
           showAPIError(err);
+        })
+        .finally(() => {
+          this.disableLetMeIn = false;
         });
     },
   },

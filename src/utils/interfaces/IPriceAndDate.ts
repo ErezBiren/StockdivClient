@@ -1,4 +1,4 @@
-export interface IPriceLastYear {
+export interface IPriceAndDate {
     valueDate: string,
     value: number
 }
