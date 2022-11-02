@@ -125,15 +125,15 @@
 
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">Timeline</div>
-        <q-separator />
         <q-scroll-area
-          style="height: 475px; max-width: 100%"
+          style="height: 280px; max-width: 100%"
           :thumb-style="thumbStyle"
         >
           <vue-horizontal-timeline
             :items="timelineItems"
             timeline-background="#E1F5FE"
+            content-class="timelineFont"
+            title-class="timelineTitleFont"
           />
         </q-scroll-area>
       </q-card-section>
@@ -914,8 +914,8 @@ export default defineComponent({
     },
     getDailyChangeColor(): string {
       return this.dailyChange < 0
-        ? 'text-subtitle2 text-red q-ml-sm q-mt-sm'
-        : 'text-subtitle2 text-green q-ml-sm q-mt-sm';
+        ? 'text-subtitle2 text-red'
+        : 'text-subtitle2 text-green';
     },
     getMarketValueColor(): string {
       return this.portfolioMarketValue - this.portfolioInvested < 0
@@ -933,3 +933,15 @@ export default defineComponent({
   },
 });
 </script>
+<style>
+.timeline {
+		padding: 2em 0 !important;
+}
+.timelineFont {
+  font-size: 14px !important;
+}
+.timelineTitleFont {
+  font-size: 16px !important;
+}
+
+</style>

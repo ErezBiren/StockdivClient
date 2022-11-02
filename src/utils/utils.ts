@@ -49,6 +49,7 @@ export const filters = {
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
+      maximumFractionDigits: 4
     });
     return formatter.format(value);
   },

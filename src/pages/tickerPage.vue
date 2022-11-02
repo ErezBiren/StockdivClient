@@ -1,7 +1,7 @@
 <template>
   <q-page class="column">
     <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
-      <q-card-section
+      <q-card-section class="q-pa-sm"
         ><q-img
           :src="tickerLogo"
           style="height: 32px; max-width: 32px"
@@ -25,47 +25,53 @@
         </q-icon>
         <q-separator />
         <div :class="getMarketValueColor">
-          {{ filters.formatToCurrency(tickerPrice) }} (<q-icon
-            :name="getArrow"
-          />{{ filters.formatToPercentage(plPercentage) }})
+          {{ filters.formatToCurrency(tickerPrice) }}
+          <div v-if="tickerInvested > 0">
+            (<q-icon :name="getArrow" />{{
+              filters.formatToPercentage(plPercentage)
+            }})
+          </div>
         </div>
         <div :class="getDailyChangeColor">
           Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})
         </div>
+        <q-separator />
+          <q-icon
+            name="add_shopping_cart"
+            class="cursor-pointer q-ma-sm"
+            size="sm"
+            @click="addPurchase()"
+            ><q-tooltip class="bg-indigo">Add transaction</q-tooltip></q-icon
+          >
+          <q-icon
+            name="edit"
+            class="cursor-pointer q-ma-sm"
+            size="sm"
+            @click="changeTicker()"
+            ><q-tooltip class="bg-indigo">Change ticker</q-tooltip></q-icon
+          >
+          <q-icon
+            name="call_split"
+            class="cursor-pointer q-ma-sm"
+            size="sm"
+            @click="splitTicker()"
+            ><q-tooltip class="bg-indigo"
+              >Split: Automatically recalculate shares and share
+              price</q-tooltip
+            ></q-icon
+          >
       </q-card-section>
-      <q-card-actions class="justify-center row no-wrap">
-        <q-icon
-          name="add_shopping_cart"
-          class="cursor-pointer q-ml-md q-mr-md"
-          size="sm"
-          @click="addPurchase()"
-          ><q-tooltip class="bg-indigo">Add transaction</q-tooltip></q-icon
-        >
-        <q-icon
-          name="edit"
-          class="cursor-pointer q-ml-md q-mr-md"
-          size="sm"
-          @click="changeTicker()"
-          ><q-tooltip class="bg-indigo">Change ticker</q-tooltip></q-icon
-        >
-        <q-icon
-          name="call_split"
-          class="cursor-pointer q-ml-md q-mr-md"
-          size="sm"
-          @click="splitTicker()"
-          ><q-tooltip class="bg-indigo"
-            >Split: Automatically recalculate shares and share price</q-tooltip
-          ></q-icon
-        >
-      </q-card-actions>
       <q-inner-loading :showing="tickerInfoLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card
+      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      v-if="tickerInvested > 0"
+    >
       <q-card-section>
         <apexchart
           type="bar"
@@ -79,7 +85,10 @@
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card
+      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      v-if="tickerInvested > 0"
+    >
       <q-card-section>
         <apexchart
           type="bar"
@@ -118,6 +127,69 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="whatHappenedSinceLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <q-markup-table
+          separator="horizontal"
+          flat
+          dense
+          bordered
+          style="height: 300px"
+        >
+          <thead>
+            <tr>
+              <th class="bg-green-2">Ex</th>
+              <th class="bg-green-2">Pay</th>
+              <th class="bg-green-2">Amount</th>
+              <th class="bg-green-2">% Increment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in dividendData" v-bind:key="item.exDay">
+              <td>
+                {{ item.exDay.substring(0, 10) }}
+              </td>
+              <td>
+                {{ item.payDay.substring(0, 10) }}
+              </td>
+              <td>
+                {{ filters.formatToCurrency(item.amount) }}
+              </td>
+              <td :class="getIncreasePercentColor(item.increasePercent)">
+                <q-icon :name="getIncreaseArrow(item.increasePercent)" />{{
+                  item.increasePercent === 0
+                    ? ''
+                    : filters.formatToPercentage(item.increasePercent)
+                }}
+              </td>
+            </tr>
+          </tbody>
+        </q-markup-table>
+      </q-card-section>
+      <q-inner-loading :showing="allDividendsLoading">
+        <q-spinner-gears size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <q-scroll-area
+          style="height: 280px; max-width: 100%"
+          :thumb-style="thumbStyle"
+        >
+          <vue-horizontal-timeline
+            :items="timelineItems"
+            timeline-background="#E1F5FE"
+            content-class="timelineFont"
+            title-class="timelineTitleFont"
+          />
+        </q-scroll-area>
+      </q-card-section>
+      <q-inner-loading :showing="timelineLoading">
         <q-spinner-gears size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
@@ -203,7 +275,7 @@
           mask="AAAAAAAAAA"
           v-model="newTicker"
         />
-        ><q-icon
+        <q-icon
           name="edit"
           size="sm"
           @click="setNewTicker()"
@@ -445,6 +517,7 @@ import { DividendFrequencyEnum } from 'src/utils/enums/DividendFrequencyEnum';
 import { date } from 'quasar';
 import { filters } from '../utils/utils';
 import axios, { AxiosError } from 'axios';
+import { IDividendHistoryData } from 'src/utils/interfaces/IDividendHistoryData';
 export default defineComponent({
   name: 'tickerPage',
 
@@ -459,6 +532,15 @@ export default defineComponent({
     let tickerMarketValue = ref(0);
 
     return {
+      timelineItems: ref<{ title: string; content: string }[]>([]),
+      timelineLoading: ref<boolean>(false),
+      thumbStyle: ref({
+        right: '2px',
+        borderRadius: '5px',
+        backgroundColor: '#027be3',
+        width: '5px',
+        opacity: '0.75',
+      }),
       DividendFrequencyEnum,
       filters,
       ticker: ref<string>(''),
@@ -485,14 +567,22 @@ export default defineComponent({
           toolbar: {
             show: false,
           },
+          animations: {
+            enabled: false,
+          },
           zoom: {
             enabled: false,
           },
         },
+        markers: {
+          size: 0,
+        },
+        colors: ['#ADD8E6', '#00FF00'],
         tooltip: {
-          shared: false
+          shared: false,
         },
         stroke: {
+          width: [2, 5],
           curve: 'straight',
         },
         title: {
@@ -694,6 +784,8 @@ export default defineComponent({
       tickerCurrency: ref<string>('USD'),
       tickerPrice: ref<number>(0),
       tickerPortfolio: ref<string>('All Portfolios'),
+      allDividendsLoading: ref<boolean>(false),
+      dividendData: ref<IDividendHistoryData[]>([]),
       newTransactionPortfolio: ref<string>(''),
       addPurchaseDialogShow: ref<boolean>(false),
       changeTickerDialogShow: ref<boolean>(false),
@@ -879,6 +971,7 @@ export default defineComponent({
         this.tickerCurrency,
         this.newTransactionWhen
       );
+      this.sharePriceChange();
       this.serverProcessing = false;
     },
     sharePriceChange() {
@@ -1153,6 +1246,57 @@ export default defineComponent({
           this.whatHappenedSinceLoading = false;
         });
     },
+    runAllDividendsRelatedAPIs() {
+      this.allDividendsLoading = true;
+      axios
+        .all([api.get(`dividend/ticker/${this.ticker}/all`)])
+        .then(
+          axios.spread(async (...responses) => {
+            this.dividendData = responses[0].data;
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.allDividendsLoading = false;
+        });
+    },
+    getIncreaseArrow(value: number): string {
+      return value === 0 ? '' : value < 0 ? 'trending_down' : 'trending_up';
+    },
+    getIncreasePercentColor(value: number): string {
+      return value < 0 ? 'text-red' : 'text-green';
+    },
+    runTimelineRelatedAPIs() {
+      this.timelineLoading = true;
+      axios
+        .all([
+          api.get(
+            `portfolio/${this.store.selectedPortfolio}/ticker/${this.ticker}/timeline`
+          ),
+        ])
+        .then(
+          axios.spread((...responses) => {
+            this.timelineItems = responses[0].data;
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.timelineLoading = false;
+        });
+    },
+    runOnLoad() {
+      this.getTickerUserData();
+      this.runTickerInfoRelatedAPIs();
+      this.runTickerInvestmentsRelatedAPIs();
+      this.runAverageIncreaseRelatedAPIs();
+      this.runWhatHappenedSinceRelatedAPIs();
+      this.runAllDividendsRelatedAPIs();
+      this.runTimelineRelatedAPIs();
+    },
   },
   mounted() {
     this.ticker = useRoute().params.ticker as string;
@@ -1163,23 +1307,36 @@ export default defineComponent({
           ? 'Portfolio'
           : this.tickerPortfolio;
     else this.newTransactionPortfolio = this.store.portfolios[0];
-    this.getTickerUserData();
-    this.runTickerInfoRelatedAPIs();
-    this.runTickerInvestmentsRelatedAPIs();
-    this.runAverageIncreaseRelatedAPIs();
-    this.runWhatHappenedSinceRelatedAPIs();
+    this.runOnLoad();
+    bus.on('addedTransaction', this.runOnLoad);
+  },
+  unmounted() {
+    bus.off('addedTransaction', this.runOnLoad);
   },
   computed: {
     getTickerDataTooltip(): string {
-      return `${this.tickerUserData?.notes || '<No Notes>'} <br/> Tax: ${
-        this.tickerUserData?.tax
-          ? filters.formatToPercentage(this.tickerUserData.tax)
-          : 'N/A, using default'
-      } <br/> Frequency: ${
+      let notes: string;
+      if (!this.tickerUserData.notes) {
+        notes = '- No Notes -';
+      } else {
+        notes = this.tickerUserData.notes;
+      }
+      let tax: string;
+      if (!this.tickerUserData?.tax) {
+        tax = 'Tax: N/A, using default';
+      } else {
+        tax = `Tax: ${filters.formatToPercentage(this.tickerUserData.tax)} `;
+      }
+      let averagePrice: string;
+      if (this.tickerAveragePrice === 0) {
+        averagePrice = '';
+      } else {
+        averagePrice = filters.formatToCurrency(this.tickerAveragePrice);
+      }
+      let tooltip = `${notes} <br/> ${tax}<br/> Frequency: ${
         DividendFrequencyEnum[this.tickerFrequency]
-      } <br/> Average Price: ${filters.formatToCurrency(
-        this.tickerAveragePrice
-      )}`;
+      }${averagePrice ? averagePrice : ''}`;
+      return tooltip;
     },
     getCurrencySymbol(): string {
       return new Intl.NumberFormat('en-US', {
@@ -1214,13 +1371,13 @@ export default defineComponent({
     },
     getDailyChangeColor(): string {
       return this.dailyChange < 0
-        ? 'text-subtitle2 text-red q-ml-sm q-mt-sm'
-        : 'text-subtitle2 text-green q-ml-sm q-mt-sm';
+        ? 'text-subtitle2 text-red q-mt-sm'
+        : 'text-subtitle2 text-green q-mt-sm';
     },
     getMarketValueColor(): string {
       return this.tickerPrice - this.tickerAveragePrice < 0
-        ? 'text-h6 text-red q-mt-sm'
-        : 'text-h6 text-green q-mt-sm';
+        ? 'text-h6 text-red q-mt-sm row no-wrap justify-center'
+        : 'text-h6 text-green q-mt-sm row no-wrap justify-center';
     },
   },
 });
@@ -1233,5 +1390,14 @@ input[type='number']::-webkit-inner-spin-button {
 
 .userDataTooltipFont {
   font-size: 14px;
+}
+.timeline {
+  padding: 2em 0 !important;
+}
+.timelineFont {
+  font-size: 14px !important;
+}
+.timelineTitleFont {
+  font-size: 16px !important;
 }
 </style>

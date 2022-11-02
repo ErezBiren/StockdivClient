@@ -99,7 +99,7 @@
           </div>
         </q-form>
         <q-inner-loading :showing="disableLetMeIn">
-          <q-spinner-gears size="50px" color="primary" />
+          <q-spinner-hourglass size="50px" color="primary" />
         </q-inner-loading>
       </q-card>
     </div>
@@ -205,7 +205,7 @@ export default defineComponent({
                 this.confirmationCodeRef?.focus();
               }, 500);
             } else {
-              this.store.token = response.data.token;              
+              this.store.token = response.data.token;
               bus.emit('loginSuccess', {});
             }
           } else {

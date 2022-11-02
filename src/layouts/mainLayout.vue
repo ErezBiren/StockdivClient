@@ -334,6 +334,7 @@ export default defineComponent({
     gotoTickerPage(ticker: string) {
       if (ticker === 'Nothing found') return;
       this.router.push({ path: `/ticker/${this.selectedPortfolio}/${ticker}` });
+      this.dataToSearch = '';
     },
     setFocusOnSearch() {
       if (this.searchTickerInput) this.searchTickerInput.focus();
@@ -550,7 +551,7 @@ export default defineComponent({
             this.store.settings = responses[2].data;
             if (this.router.currentRoute.value.fullPath.includes('login'))
               this.router.push({ path: '/overview' });
-            else this.router.go(0);
+            else bus.emit('addedTransaction');
           })
         )
         .catch((err: AxiosError) => {
