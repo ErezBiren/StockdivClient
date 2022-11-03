@@ -112,7 +112,6 @@ import { defineComponent } from 'vue';
 import { ref } from 'vue';
 import { QInput } from 'quasar';
 import { stockdivStore } from 'src/stores/stockdivStore';
-import { useRouter } from 'vue-router';
 import {
   bus,
   showAPIError,
@@ -125,7 +124,6 @@ export default defineComponent({
   components: {},
 
   setup() {
-    const router = useRouter();
     const store = stockdivStore();
 
     return {
@@ -141,7 +139,6 @@ export default defineComponent({
       confirmationCode: ref(''),
       codeSent: ref(false),
       disableLetMeIn: ref<boolean>(false),
-      router,
       store,
       confirmationCodeRef: ref<QInput>(),
     };
@@ -206,7 +203,7 @@ export default defineComponent({
               }, 500);
             } else {
               this.store.token = response.data.token;
-              bus.emit('loginSuccess', {});
+              bus.emit('transactionChange', {});
             }
           } else {
             showNotification(

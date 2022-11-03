@@ -1,9 +1,6 @@
 <template>
-  <q-page
-    class="column"
-    v-if="store.token !== '' && store.portfolios.length > 0"
-  >
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+  <q-page v-if="store.token !== '' && store.portfolios.length > 0">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <div class="text-h5">{{ store.selectedPortfolio }}</div>
         <q-separator />
@@ -27,11 +24,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="marketValueLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <div class="text-h6 q-mt-sm">
           Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
@@ -75,11 +72,11 @@
         </div>
       </q-card-section>
       <q-inner-loading :showing="dividendsInfoLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <apexchart
           type="bar"
@@ -89,11 +86,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="projectionLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <apexchart
           type="donut"
@@ -104,11 +101,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="diversificationLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <apexchart
           type="line"
@@ -119,11 +116,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="PerformanceLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <q-scroll-area
           style="height: 280px; max-width: 100%"
@@ -134,11 +131,14 @@
             timeline-background="#E1F5FE"
             content-class="timelineFont"
             title-class="timelineTitleFont"
+            v-model:item-selected="timelineItem"
+            :clickable="true"
+            @click="gotoTicker()"
           />
         </q-scroll-area>
       </q-card-section>
       <q-inner-loading :showing="timelineLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-page>
@@ -153,16 +153,20 @@ import { showAPIError, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'overView',
   setup() {
+    const router = useRouter();
     const store = stockdivStore();
     let portfolioMarketValue = ref(0);
     let portfolioInvested = ref(0);
     let dividendsSoFar = ref(0);
     return {
+      timelineItem: ref(),
       store,
+      router,
       filters,
       timelineItems: ref<{ title: string; content: string }[]>([]),
       timelineLoading: ref<boolean>(false),
@@ -495,7 +499,7 @@ export default defineComponent({
           type: 'bar',
         },
         colors: [
-          (data: { value: number, dataPointIndex: number }) => {
+          (data: { value: number; dataPointIndex: number }) => {
             switch (data.dataPointIndex) {
               case 0:
                 return '#55aaff';
@@ -682,6 +686,12 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoTicker() {
+      if (!this.timelineItem) return;
+      this.router.push({
+        path: `/ticker/${this.store.selectedPortfolio}/${this.timelineItem.ticker}`,
+      });
+    },
     getTickerIcon(index: number) {
       return this.nextDivTickersLogos[index];
     },
@@ -788,7 +798,7 @@ export default defineComponent({
                     (i < 5 ? this.averageIncrease5y : this.averageIncrease10y))
               );
               incomeLastYear *=
-                (1 + (i < 5 ? this.averageIncrease5y : this.averageIncrease10y));
+                1 + (i < 5 ? this.averageIncrease5y : this.averageIncrease10y);
             }
           })
         )
@@ -935,7 +945,7 @@ export default defineComponent({
 </script>
 <style>
 .timeline {
-		padding: 2em 0 !important;
+  padding: 2em 0 !important;
 }
 .timelineFont {
   font-size: 14px !important;
@@ -943,5 +953,4 @@ export default defineComponent({
 .timelineTitleFont {
   font-size: 16px !important;
 }
-
 </style>

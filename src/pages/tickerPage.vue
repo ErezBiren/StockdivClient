@@ -1,6 +1,6 @@
 <template>
-  <q-page class="column">
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+  <q-page>
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section class="q-pa-sm"
         ><q-img
           :src="tickerLogo"
@@ -38,38 +38,38 @@
           />{{ filters.formatToPercentage(dailyChangePercentage) }})
         </div>
         <q-separator />
-          <q-icon
-            name="add_shopping_cart"
-            class="cursor-pointer q-ma-sm"
-            size="sm"
-            @click="addPurchase()"
-            ><q-tooltip class="bg-indigo">Add transaction</q-tooltip></q-icon
-          >
-          <q-icon
-            name="edit"
-            class="cursor-pointer q-ma-sm"
-            size="sm"
-            @click="changeTicker()"
-            ><q-tooltip class="bg-indigo">Change ticker</q-tooltip></q-icon
-          >
-          <q-icon
-            name="call_split"
-            class="cursor-pointer q-ma-sm"
-            size="sm"
-            @click="splitTicker()"
-            ><q-tooltip class="bg-indigo"
-              >Split: Automatically recalculate shares and share
-              price</q-tooltip
-            ></q-icon
-          >
+        <q-icon
+          name="add_shopping_cart"
+          class="cursor-pointer q-ma-sm"
+          size="sm"
+          @click="addPurchase()"
+          ><q-tooltip class="bg-indigo">Add transaction</q-tooltip></q-icon
+        >
+        <q-icon
+          name="edit"
+          class="cursor-pointer q-ma-sm"
+          size="sm"
+          @click="changeTicker()"
+          ><q-tooltip class="bg-indigo">Change ticker</q-tooltip></q-icon
+        >
+        <q-icon
+          name="call_split"
+          class="cursor-pointer q-ma-sm"
+          size="sm"
+          v-if="tickerInvested > 0"
+          @click="splitTicker()"
+          ><q-tooltip class="bg-indigo"
+            >Split: Automatically recalculate shares and share price</q-tooltip
+          ></q-icon
+        >
       </q-card-section>
       <q-inner-loading :showing="tickerInfoLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
     <q-card
-      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1"
       v-if="tickerInvested > 0"
     >
       <q-card-section>
@@ -81,12 +81,12 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="tickerInvestmentsLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
     <q-card
-      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1"
       v-if="tickerInvested > 0"
     >
       <q-card-section>
@@ -98,11 +98,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="tickerInvestmentsLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <apexchart
           type="bar"
@@ -112,11 +112,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="averageIncreaseLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <apexchart
           type="line"
@@ -127,11 +127,11 @@
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="whatHappenedSinceLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <q-markup-table
           separator="horizontal"
@@ -171,7 +171,7 @@
         </q-markup-table>
       </q-card-section>
       <q-inner-loading :showing="allDividendsLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
 
@@ -186,11 +186,13 @@
             timeline-background="#E1F5FE"
             content-class="timelineFont"
             title-class="timelineTitleFont"
+            v-model:item-selected="timelineItem"
+            @click="editTransaction()"
           />
         </q-scroll-area>
       </q-card-section>
       <q-inner-loading :showing="timelineLoading">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-page>
@@ -238,14 +240,13 @@
               type="submit"
               size="md"
               class="cursor-pointer"
+              ><q-tooltip class="bg-indigo">Save</q-tooltip></q-btn
             >
-              <q-tooltip class="bg-indigo">Save</q-tooltip>
-            </q-btn>
           </div>
         </q-card-section>
       </q-form>
       <q-inner-loading :showing="serverProcessing">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-dialog>
@@ -291,7 +292,7 @@
         your transactions
       </q-card-actions>
       <q-inner-loading :showing="serverProcessing">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-dialog>
@@ -346,12 +347,16 @@
         your transactions
       </q-card-actions>
       <q-inner-loading :showing="serverProcessing">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-dialog>
 
-  <q-dialog v-model="addPurchaseDialogShow" position="bottom">
+  <q-dialog
+    v-model="addPurchaseDialogShow"
+    position="bottom"
+    @hide="resetNewTransaction()"
+  >
     <q-card class="bg-info">
       <q-form @submit="submitNewTransaction">
         <q-card-section class="row no-wrap q-pb-none" dense>
@@ -490,10 +495,21 @@
           >
             <q-tooltip class="bg-indigo">Save</q-tooltip>
           </q-btn>
+          <q-btn
+            icon="delete"
+            color="secondary"
+            flat
+            v-if="editedTransaction"
+            @click="deleteTransaction()"
+            size="md"
+            class="cursor-pointer q-ml-md q-mr-md"
+          >
+            <q-tooltip class="bg-indigo">Delete</q-tooltip>
+          </q-btn>
         </q-card-actions>
       </q-form>
       <q-inner-loading :showing="serverProcessing">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-dialog>
@@ -532,6 +548,8 @@ export default defineComponent({
     let tickerMarketValue = ref(0);
 
     return {
+      editedTransaction: ref<ITransactionData>(),
+      timelineItem: ref(),
       timelineItems: ref<{ title: string; content: string }[]>([]),
       timelineLoading: ref<boolean>(false),
       thumbStyle: ref({
@@ -907,6 +925,56 @@ export default defineComponent({
     };
   },
   methods: {
+    deleteTransaction() {
+      this.$q.dialog({
+        title: 'Delete a transaction',
+        message: 'Are you sure?',
+        position: 'bottom',
+        cancel: true,
+      }).onOk(() => {
+        this.serverProcessing = true;
+        this.editedTransaction = {
+          portfolio: this.tickerPortfolio,
+          ticker: this.ticker,
+          currency: this.tickerCurrency,
+          shares: this.newTransactionShares,
+          sharePrice: this.newTransactionSharePrice,
+          when: this.newTransactionWhen,
+        };
+        api
+          .delete('transaction', { data: this.editedTransaction })
+          .then(() => {
+            showNotification('Transaction was deleted successfully');
+            this.editedTransaction = undefined;
+            this.addPurchaseDialogShow = false;
+            this.runOnLoad();
+          })
+          .catch((error) => {
+            showAPIError(error);
+          })
+          .finally(() => {
+            this.serverProcessing = false;            
+          });
+      });
+    },
+    editTransaction() {
+      if (!this.timelineItem || !this.timelineItem.transaction) return;
+      this.newTransactionSharePrice = this.timelineItem.transaction.sharePrice;
+      this.newTransactionShares = this.timelineItem.transaction.shares;
+      this.newTransactionTotal =
+        this.timelineItem.transaction.sharePrice *
+        this.timelineItem.transaction.shares;
+      this.newTransactionWhen = this.timelineItem.transaction.when.substring(0,10);
+      this.editedTransaction = {
+        portfolio: this.tickerPortfolio,
+        ticker: this.ticker,
+        currency: this.tickerCurrency,
+        shares: this.newTransactionShares,
+        sharePrice: this.newTransactionSharePrice,
+        when: this.newTransactionWhen,
+      };
+      this.addPurchaseDialogShow = true;
+    },
     closeUserDataDialog() {
       this.userDataDialogShow = false;
     },
@@ -929,7 +997,7 @@ export default defineComponent({
             } else {
               this.splitTickerDialogShow = false;
               showNotification('Ticker was splitted successfully');
-              //todo: amos - reload transactions of shares
+              this.runOnLoad();
             }
           })
           .catch((err) => {
@@ -945,6 +1013,7 @@ export default defineComponent({
       this.newTransactionShares = 0;
       this.newTransactionTotal = 0;
       this.newTransactionWhen = getTodayDate(false);
+      this.editedTransaction = undefined;
     },
     setNewPortfolio(val: string) {
       this.newTransactionPortfolio = val;
@@ -1060,14 +1129,16 @@ export default defineComponent({
       });
       this.serverProcessing = true;
       api
-        .post('transaction', transactions)
+        .post('transaction', {
+          transactions,
+          editedTransaction: this.editedTransaction,
+        })
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
           } else {
             this.addPurchaseDialogShow = false;
-            showNotification('The transaction was added successfully');
-            this.resetNewTransaction();
+            showNotification('The transaction was updated successfully');
             bus.emit('transactionChange', {});
           }
         })
@@ -1308,10 +1379,10 @@ export default defineComponent({
           : this.tickerPortfolio;
     else this.newTransactionPortfolio = this.store.portfolios[0];
     this.runOnLoad();
-    bus.on('addedTransaction', this.runOnLoad);
+    bus.on('changesInTransactions', this.runOnLoad);
   },
   unmounted() {
-    bus.off('addedTransaction', this.runOnLoad);
+    bus.off('changesInTransactions', this.runOnLoad);
   },
   computed: {
     getTickerDataTooltip(): string {

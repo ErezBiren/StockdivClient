@@ -166,7 +166,7 @@
         >
       </q-card-actions>
       <q-inner-loading :showing="importInProcess">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-dialog>
@@ -229,7 +229,7 @@
         >
       </q-card-section>
       <q-inner-loading :showing="savingSettings">
-        <q-spinner-gears size="50px" color="primary" />
+        <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
   </q-dialog>
@@ -551,7 +551,7 @@ export default defineComponent({
             this.store.settings = responses[2].data;
             if (this.router.currentRoute.value.fullPath.includes('login'))
               this.router.push({ path: '/overview' });
-            else bus.emit('addedTransaction');
+            else bus.emit('changesInTransactions');
           })
         )
         .catch((err: AxiosError) => {
@@ -560,11 +560,9 @@ export default defineComponent({
     },
   },
   mounted() {
-    bus.on('loginSuccess', this.runOnLoginSuccess);
     bus.on('transactionChange', this.runOnLoginSuccess);
   },
   beforeUnmount() {
-    bus.off('loginSuccess', this.runOnLoginSuccess);
     bus.off('transactionChange', this.runOnLoginSuccess);
   },
   watch: {
