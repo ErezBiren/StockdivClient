@@ -25,6 +25,15 @@
 
             <q-icon
               color="blue"
+              name="event_note"
+              class="cursor-pointer q-my-xs q-mx-sm"
+              @click="gotoYearlyPayment()"
+            >
+              <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
+            </q-icon>
+
+            <q-icon
+              color="blue"
               name="logout"
               class="cursor-pointer q-my-xs q-mx-sm"
               @click="logout()"
@@ -138,8 +147,10 @@
         ticker, quantity, total price, date (yyyy-mm-dd), portfolio,
         commissions, currency<br />
         * Header row is not needed<br />* Commissions and currency are
-        optional<br />* Preferred tickers format is, i.e. HMLP-PA<br />*
-        Negative quantity represents a sell transaction
+        optional<br />* A Preferred ticker format is, i.e. HMLP-PA<br />*
+        Negative quantity represents a sell transaction<br />* You can import
+        later from the settings window<br />* Current transactions, if exist,
+        won't be deleted
         <div class="row">
           <q-file
             style="max-width: 300px"
@@ -178,7 +189,12 @@
     position="bottom"
   >
     <q-card class="bg-info">
-      <q-card-section class="row text-h5">Settings </q-card-section>
+      <q-card-section class="row text-h5"
+        ><q-img :src="'logo.png'" class="logo" />
+        <div class="q-mt-sm">Settings</div>
+        <q-space />
+        <div class="text-subtitle2">3.0.1</div></q-card-section
+      >
       <q-separator />
       <q-card-section class="row no-wrap">
         <q-input
@@ -217,6 +233,7 @@
           type="number"
           dense
           step="0.01"
+          prefix="%"
           hint="Default Tax"
           :rules="[(val) => (val && val >= 0) || 'Default tax is missing']"
         />
@@ -228,6 +245,33 @@
           ><q-tooltip class="bg-indigo">Save default tax</q-tooltip></q-icon
         >
       </q-card-section>
+      <q-separator />
+      <q-card-actions align="right">
+        <q-icon
+          name="password"
+          class="cursor-pointer q-ma-sm"
+          @click="changePassword()"
+          ><q-tooltip class="bg-indigo">Change password</q-tooltip></q-icon
+        >
+        <q-icon
+          name="file_download"
+          class="cursor-pointer q-ma-sm"
+          @click="exportTransactions()"
+          ><q-tooltip class="bg-indigo">Export transactions</q-tooltip></q-icon
+        >
+        <q-icon
+          name="file_upload"
+          class="cursor-pointer q-ma-sm"
+          @click="importTransactionsWindow()"
+          ><q-tooltip class="bg-indigo">Import transactions</q-tooltip></q-icon
+        >
+      </q-card-actions>
+      <q-separator />
+      <q-card-section
+        style="font-size: 10px"
+        class="q-ma-none q-pa-none text-center"
+        >Logo: @luca_pettini</q-card-section
+      >
       <q-inner-loading :showing="savingSettings">
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
@@ -289,6 +333,88 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoYearlyPayment() {
+      this.router.push({ path: '/yearlyPayment' });
+    },
+    importTransactionsWindow() {
+      this.showNoTransactionsDialog = true;
+    },
+    exportTransactions() {
+      this.savingSettings = true;
+      api
+        .get('user/exportTransactions')
+        .then((response) => {
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            let fileName = 'transactions.csv';
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.savingSettings = false;
+        });
+    },
+    changePassword() {
+      this.$q
+        .dialog({
+          position: 'bottom',
+          title: 'Change password',
+          message: 'Your current password',
+          prompt: {
+            model: '',
+            isValid: (val: string) => val.length > 7,
+            type: 'password',
+          },
+        })
+        .onOk((oldPassword: string) => {
+          this.$q
+            .dialog({
+              position: 'bottom',
+              title: 'Change password',
+              message: 'Your new password',
+              prompt: {
+                model: '',
+                isValid: (val: string) => val.length > 7,
+                type: 'password',
+              },
+            })
+            .onOk((newPassword: string) => {
+              this.savingSettings = true;
+              api
+                .put('user/password', {
+                  oldPassword: oldPassword,
+                  newPassword: newPassword,
+                })
+                .then((response) => {
+                  if (response.data.error) {
+                    showNotification(response.data.error);
+                  } else {
+                    showNotification(
+                      'Password was changed successfully, you must re-login'
+                    );
+                    this.logout();
+                  }
+                })
+                .catch((err) => {
+                  showAPIError(err);
+                })
+                .finally(() => {
+                  this.savingSettings = false;
+                });
+            });
+        });
+    },
     gotoOverview() {
       this.router.push({ path: '/overview' });
     },
@@ -322,6 +448,7 @@ export default defineComponent({
     },
     addManualTransaction() {
       this.showNoTransactionsDialog = false;
+      this.showSettingsPopup = false;
       setTimeout(() => {
         this.setFocusOnSearch();
       }, 150);
@@ -576,5 +703,10 @@ export default defineComponent({
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
   opacity: 0;
+}
+.logo {
+  width: 32px;
+  height: 32px;
+  margin: 5px;
 }
 </style>

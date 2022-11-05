@@ -49,6 +49,7 @@
           name="edit"
           class="cursor-pointer q-ma-sm"
           size="sm"
+          v-if="tickerInvested > 0"
           @click="changeTicker()"
           ><q-tooltip class="bg-indigo">Change ticker</q-tooltip></q-icon
         >
@@ -87,7 +88,7 @@
 
     <q-card
       class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1"
-      v-if="tickerInvested > 0"
+      v-if="tickerInvested > 0 && dividendData.length > 0"
     >
       <q-card-section>
         <apexchart
@@ -102,13 +103,16 @@
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
+    <q-card
+      class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1"
+      v-if="dividendData.length > 0"
+    >
       <q-card-section>
         <apexchart
           type="bar"
           height="300"
-          :options="averageIncreaseOptions"
-          :series="averageIncreaseSeries"
+          :options="yearsProjectionOptions"
+          :series="yearsProjectionSeries"
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="averageIncreaseLoading">
@@ -131,13 +135,16 @@
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
+    <q-card
+      class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1"
+      v-if="dividendData.length > 0"
+    >
       <q-card-section>
         <q-markup-table
           separator="horizontal"
           flat
           dense
-          bordered
+          class="bg-light-blue-1"
           style="height: 300px"
         >
           <thead>
@@ -146,6 +153,7 @@
               <th class="bg-green-2">Pay</th>
               <th class="bg-green-2">Amount</th>
               <th class="bg-green-2">% Increment</th>
+              <th class="bg-green-2">Special</th>
             </tr>
           </thead>
           <tbody>
@@ -166,6 +174,13 @@
                     : filters.formatToPercentage(item.increasePercent)
                 }}
               </td>
+              <td>
+                <q-checkbox dense
+                  disable
+                  v-model="item.special"
+                  checked-icon="task_alt"
+                  unchecked-icon="highlight_off"/>
+              </td>
             </tr>
           </tbody>
         </q-markup-table>
@@ -175,7 +190,10 @@
       </q-inner-loading>
     </q-card>
 
-    <q-card class="text-center q-ma-md shadow-8 bg-light-blue-1">
+    <q-card
+      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      v-if="dividendData.length > 0 || tickerInvested > 0"
+    >
       <q-card-section>
         <q-scroll-area
           style="height: 280px; max-width: 100%"
@@ -641,10 +659,8 @@ export default defineComponent({
         ],
       }),
       averageIncreaseLoading: ref<boolean>(false),
-      averageIncreaseSeries: ref<[{ data: number[] }]>([
-        { data: [0, 0, 0, 0, 0, 0, 0] },
-      ]),
-      averageIncreaseOptions: ref({
+      yearsProjectionSeries: ref<[{ data: number[] }]>([{ data: [] }]),
+      yearsProjectionOptions: ref({
         chart: {
           type: 'bar',
         },
@@ -766,7 +782,7 @@ export default defineComponent({
               total: {
                 enabled: true,
                 formatter: function () {
-                  return filters.formatToPercentage(
+                  return tickerInvested.value === 0? 0: filters.formatToPercentage(
                     (tickerDividendsSoFar.value / tickerInvested.value) * 100
                   );
                 },
@@ -798,7 +814,7 @@ export default defineComponent({
       tickerInvestmentsLoading: ref<boolean>(false),
       tickerInfoLoading: ref<boolean>(false),
       tickerAveragePrice: ref<number>(0),
-      tickerFrequency: ref<DividendFrequencyEnum>(DividendFrequencyEnum.None),
+      tickerFrequency: ref<DividendFrequencyEnum>(DividendFrequencyEnum.Other),
       tickerCurrency: ref<string>('USD'),
       tickerPrice: ref<number>(0),
       tickerPortfolio: ref<string>('All Portfolios'),
@@ -926,36 +942,38 @@ export default defineComponent({
   },
   methods: {
     deleteTransaction() {
-      this.$q.dialog({
-        title: 'Delete a transaction',
-        message: 'Are you sure?',
-        position: 'bottom',
-        cancel: true,
-      }).onOk(() => {
-        this.serverProcessing = true;
-        this.editedTransaction = {
-          portfolio: this.tickerPortfolio,
-          ticker: this.ticker,
-          currency: this.tickerCurrency,
-          shares: this.newTransactionShares,
-          sharePrice: this.newTransactionSharePrice,
-          when: this.newTransactionWhen,
-        };
-        api
-          .delete('transaction', { data: this.editedTransaction })
-          .then(() => {
-            showNotification('Transaction was deleted successfully');
-            this.editedTransaction = undefined;
-            this.addPurchaseDialogShow = false;
-            this.runOnLoad();
-          })
-          .catch((error) => {
-            showAPIError(error);
-          })
-          .finally(() => {
-            this.serverProcessing = false;            
-          });
-      });
+      this.$q
+        .dialog({
+          title: 'Delete a transaction',
+          message: 'Are you sure?',
+          position: 'bottom',
+          cancel: true,
+        })
+        .onOk(() => {
+          this.serverProcessing = true;
+          this.editedTransaction = {
+            portfolio: this.tickerPortfolio,
+            ticker: this.ticker,
+            currency: this.tickerCurrency,
+            shares: this.newTransactionShares,
+            sharePrice: this.newTransactionSharePrice,
+            when: this.newTransactionWhen,
+          };
+          api
+            .delete('transaction', { data: this.editedTransaction })
+            .then(() => {
+              showNotification('Transaction was deleted successfully');
+              this.editedTransaction = undefined;
+              this.addPurchaseDialogShow = false;
+              this.runOnLoad();
+            })
+            .catch((error) => {
+              showAPIError(error);
+            })
+            .finally(() => {
+              this.serverProcessing = false;
+            });
+        });
     },
     editTransaction() {
       if (!this.timelineItem || !this.timelineItem.transaction) return;
@@ -964,7 +982,10 @@ export default defineComponent({
       this.newTransactionTotal =
         this.timelineItem.transaction.sharePrice *
         this.timelineItem.transaction.shares;
-      this.newTransactionWhen = this.timelineItem.transaction.when.substring(0,10);
+      this.newTransactionWhen = this.timelineItem.transaction.when.substring(
+        0,
+        10
+      );
       this.editedTransaction = {
         portfolio: this.tickerPortfolio,
         ticker: this.ticker,
@@ -1255,26 +1276,33 @@ export default defineComponent({
         .then(
           axios.spread(async (...responses) => {
             const averageIncrease: number = responses[0].data.averageIncrease5y;
-            this.averageIncreaseSeries[0].data[0] =
-              responses[0].data.dividends1YearBack;
-            this.averageIncreaseSeries[0].data[1] =
+            this.yearsProjectionSeries[0].data.push(
+              responses[0].data.dividends1YearBack
+            );
+            this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack *
-              Math.pow(1 + averageIncrease, 1);
-            this.averageIncreaseSeries[0].data[2] =
+                Math.pow(1 + averageIncrease, 1)
+            );
+            this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack *
-              Math.pow(1 + averageIncrease, 2);
-            this.averageIncreaseSeries[0].data[3] =
+                Math.pow(1 + averageIncrease, 2)
+            );
+            this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack *
-              Math.pow(1 + averageIncrease, 3);
-            this.averageIncreaseSeries[0].data[4] =
+                Math.pow(1 + averageIncrease, 3)
+            );
+            this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack *
-              Math.pow(1 + averageIncrease, 4);
-            this.averageIncreaseSeries[0].data[5] =
+                Math.pow(1 + averageIncrease, 4)
+            );
+            this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack *
-              Math.pow(1 + averageIncrease, 5);
-            this.averageIncreaseSeries[0].data[6] =
+                Math.pow(1 + averageIncrease, 5)
+            );
+            this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack *
-              Math.pow(1 + averageIncrease, 6);
+                Math.pow(1 + averageIncrease, 6)
+            );
           })
         )
         .catch((err: AxiosError) => {
@@ -1402,11 +1430,13 @@ export default defineComponent({
       if (this.tickerAveragePrice === 0) {
         averagePrice = '';
       } else {
-        averagePrice = filters.formatToCurrency(this.tickerAveragePrice);
+        averagePrice = `Average Price: ${filters.formatToCurrency(
+          this.tickerAveragePrice
+        )}`;
       }
       let tooltip = `${notes} <br/> ${tax}<br/> Frequency: ${
-        DividendFrequencyEnum[this.tickerFrequency]
-      }${averagePrice ? averagePrice : ''}`;
+        this.tickerFrequency
+      }<br/>${averagePrice ? averagePrice : ''}`;
       return tooltip;
     },
     getCurrencySymbol(): string {
@@ -1470,5 +1500,10 @@ input[type='number']::-webkit-inner-spin-button {
 }
 .timelineTitleFont {
   font-size: 16px !important;
+}
+th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 15;
 }
 </style>

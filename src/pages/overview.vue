@@ -81,11 +81,55 @@
         <apexchart
           type="bar"
           height="300"
+          ref="monthsProjectionChart"
+          :options="monthsProjectionChartOptions"
+          :series="monthsProjectionChartSeries"
+        ></apexchart>
+      </q-card-section>
+      <q-inner-loading :showing="monthsProjectionLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <apexchart
+          type="bar"
+          height="300"
+          ref="highestIncomeChart"
+          :options="highestIncomeChartOptions"
+          :series="highestIncomeChartSeries"
+        ></apexchart>
+      </q-card-section>
+      <q-inner-loading :showing="highestIncomeLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <apexchart
+          type="bar"
+          height="300"
           :options="projectionChartOptions"
           :series="projectionChartSeries"
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="projectionLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
+    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
+      <q-card-section>
+        <apexchart
+          type="bar"
+          height="300"
+          :options="roiChartOptions"
+          :series="roiChartSeries"
+        ></apexchart>
+      </q-card-section>
+      <q-inner-loading :showing="dividendsInfoLoading || marketValueLoading">
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
@@ -168,8 +212,219 @@ export default defineComponent({
       store,
       router,
       filters,
+      roiChartSeries: ref<[{ data: number[] }, { data: number[] }]>([
+        { data: [0] },
+        { data: [0] },
+      ]),
+      roiChartOptions: ref({
+        chart: {
+          type: 'bar',
+          stacked: true,
+        },
+        tooltip: {
+          enabled: false,
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val: number) {
+            return filters.formatToCurrency(val);
+          },
+          style: {
+            fontSize: '12px',
+            colors: ['#304758'],
+          },
+        },
+        legend: {
+          show: false,
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            dataLabels: {
+              total: {
+                enabled: true,
+                formatter: function () {
+                  return portfolioInvested.value === 0? 0: filters.formatToPercentage(
+                    (dividendsSoFar.value / portfolioInvested.value) * 100
+                  );
+                },
+                style: {
+                  fontSize: '13px',
+                  fontWeight: 900,
+                },
+              },
+            },
+          },
+        },
+        yaxis: {
+          show: false,
+        },
+        xaxis: {
+          type: 'string',
+          categories: ['ROI'],
+        },
+        fill: {
+          opacity: 1,
+        },
+      }),
       timelineItems: ref<{ title: string; content: string }[]>([]),
       timelineLoading: ref<boolean>(false),
+      monthsProjectionChart: ref<ApexCharts>(),
+      monthsProjectionLoading: ref<boolean>(false),
+      monthsProjectionChartSeries: ref<[{ data: number[] }]>([{ data: [] }]),
+      monthsProjectionChartOptions: ref({
+        chart: {
+          type: 'bar',
+        },
+        title: {
+          show: true,
+          text: '12 months projection',
+          align: 'center',
+        },
+        grid: {
+          yaxis: {
+            lines: {
+              show: false,
+            },
+          },
+        },
+        tooltip: {
+          enabled: false,
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 10,
+            dataLabels: {
+              position: 'top',
+            },
+          },
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val: number) {
+            return filters.formatToCurrency(val);
+          },
+          offsetY: -20,
+          style: {
+            fontSize: '12px',
+            colors: ['#304758'],
+          },
+        },
+        xaxis: {
+          categories: [],
+          position: 'bottom',
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          crosshairs: {
+            fill: {
+              type: 'gradient',
+              gradient: {
+                colorFrom: '#D8E3F0',
+                colorTo: '#BED1E6',
+                stops: [0, 100],
+                opacityFrom: 0.4,
+                opacityTo: 0.5,
+              },
+            },
+          },
+        },
+        yaxis: {
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          labels: {
+            show: true,
+            formatter: function (val: number) {
+              return filters.formatToCurrency(val);
+            },
+          },
+        },
+      }),
+      highestIncomeLoading: ref<boolean>(false),
+      highestIncomeChartSeries: ref<[{ data: number[] }]>([{ data: [] }]),
+      highestIncomeChartOptions: ref({
+        chart: {
+          type: 'bar',
+        },
+        title: {
+          show: true,
+          text: 'Highest income tickers',
+          align: 'center',
+        },
+        grid: {
+          yaxis: {
+            lines: {
+              show: false,
+            },
+          },
+        },
+        tooltip: {
+          enabled: false,
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 10,
+            dataLabels: {
+              position: 'top',
+            },
+          },
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val: number) {
+            return filters.formatToCurrency(val);
+          },
+          offsetY: -20,
+          style: {
+            fontSize: '12px',
+            colors: ['#304758'],
+          },
+        },
+        xaxis: {
+          categories: [],
+          position: 'bottom',
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          crosshairs: {
+            fill: {
+              type: 'gradient',
+              gradient: {
+                colorFrom: '#D8E3F0',
+                colorTo: '#BED1E6',
+                stops: [0, 100],
+                opacityFrom: 0.4,
+                opacityTo: 0.5,
+              },
+            },
+          },
+        },
+        yaxis: {
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          labels: {
+            show: true,
+            formatter: function (val: number) {
+              return filters.formatToCurrency(val);
+            },
+          },
+        },
+      }),
       portfolioMarketValue,
       portfolioInvested,
       dividendsSoFar,
@@ -181,6 +436,7 @@ export default defineComponent({
       dividendsInfoLoading: ref<boolean>(false),
       dailyChange: ref<number>(0),
       diversificationChart: ref<ApexCharts>(),
+      highestIncomeChart: ref<ApexCharts>(),
       portfolioChart: ref<ApexCharts>(),
       performanceChart: ref<ApexCharts>(),
       thumbStyle: ref({
@@ -218,7 +474,7 @@ export default defineComponent({
         title: {
           show: true,
           align: 'center',
-          text: 'Your portfolio vs S&P500',
+          text: `${store.selectedPortfolio} vs S&P500`,
         },
         grid: {
           borderColor: '#e7e7e7',
@@ -710,6 +966,8 @@ export default defineComponent({
           axios.spread((...responses) => {
             this.portfolioMarketValue = responses[0].data;
             this.portfolioInvested = responses[1].data;
+            this.roiChartSeries[0].data[0] = this.dividendsSoFar;
+            this.roiChartSeries[1].data[0] = this.portfolioInvested;
             this.dailyChange = responses[2].data;
             this.portfolioChartSeries[0].data[0] = this.portfolioInvested;
             this.portfolioChartSeries[0].data[1] = this.portfolioMarketValue;
@@ -743,6 +1001,8 @@ export default defineComponent({
               this.portfolioMarketValue -
               this.portfolioInvested +
               this.dividendsSoFar;
+            this.roiChartSeries[0].data[0] = this.dividendsSoFar;
+            this.roiChartSeries[1].data[0] = this.portfolioInvested;
 
             if (responses[1].data.days === -1)
               this.nextDividendInfo = 'Nothing in the next 31 days...';
@@ -886,6 +1146,64 @@ export default defineComponent({
           this.timelineLoading = false;
         });
     },
+    runHighestIncomeRelatedAPIs() {
+      this.highestIncomeLoading = true;
+      axios
+        .all([
+          api.get(`portfolio/${this.store.selectedPortfolio}/highestIncome`),
+        ])
+        .then(
+          axios.spread((...responses) => {
+            this.highestIncomeChartSeries[0].data = responses[0].data.map(
+              (item: [string, number]) => item[1]
+            );
+            if (this.highestIncomeChart)
+              this.highestIncomeChart.updateOptions({
+                xaxis: {
+                  categories: responses[0].data.map(
+                    (item: [string, number]) => item[0]
+                  ),
+                },
+              });
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.highestIncomeLoading = false;
+        });
+    },
+    runMonthsProjectionRelatedAPIs() {
+      this.monthsProjectionLoading = true;
+      axios
+        .all([
+          api.get(
+            `dividend/portfolio/${this.store.selectedPortfolio}/monthsProjection`
+          ),
+        ])
+        .then(
+          axios.spread((...responses) => {
+            this.monthsProjectionChartSeries[0].data = responses[0].data.map(
+              (item: [string, number]) => item[1]
+            );
+            if (this.monthsProjectionChart)
+              this.monthsProjectionChart.updateOptions({
+                xaxis: {
+                  categories: responses[0].data.map(
+                    (item: [string, number]) => item[0]
+                  ),
+                },
+              });
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.monthsProjectionLoading = false;
+        });
+    },
     runWhenHasTransactions() {
       this.runPortfolioRelatedAPIs();
       this.runDividendsRelatedAPIs();
@@ -893,6 +1211,8 @@ export default defineComponent({
       this.runDiversificationRelatedAPIs();
       this.runPerformanceRelatedAPIs();
       this.runTimelineRelatedAPIs();
+      this.runHighestIncomeRelatedAPIs();
+      this.runMonthsProjectionRelatedAPIs();
     },
   },
   computed: {

@@ -14,6 +14,10 @@ const routes: RouteRecordRaw[] = [
         path: '/ticker/:portfolio/:ticker',
         component: () => import('pages/tickerPage.vue'),
       },
+      {
+        path: '/yearlyPayment',
+        component: () => import('pages/YearlyPayment.vue'),
+      },
     ],
   },
 
