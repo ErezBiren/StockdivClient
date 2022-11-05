@@ -27,7 +27,7 @@
               color="blue"
               name="event_note"
               class="cursor-pointer q-my-xs q-mx-sm"
-              @click="gotoYearlyPayment()"
+              @click="gotoYearlyPaymentMatrix()"
             >
               <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
             </q-icon>
@@ -333,8 +333,8 @@ export default defineComponent({
     };
   },
   methods: {
-    gotoYearlyPayment() {
-      this.router.push({ path: '/yearlyPayment' });
+    gotoYearlyPaymentMatrix() {
+      this.router.push({ path: '/yearlyPaymentMatrix' });
     },
     importTransactionsWindow() {
       this.showNoTransactionsDialog = true;
