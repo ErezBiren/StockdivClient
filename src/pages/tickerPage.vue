@@ -1504,6 +1504,6 @@ input[type='number']::-webkit-inner-spin-button {
 th {
   position: sticky;
   inset-block-start: 0;
-  z-index: 15;
+  z-index: 1;
 }
 </style>

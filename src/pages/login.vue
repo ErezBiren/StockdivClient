@@ -3,7 +3,7 @@
     <div class="column items-center">
       <q-img src="logo.png" />
 
-      <q-card>
+      <q-card class="shadow-8 bg-light-blue-1">
         <q-form class="q-pa-lg">
           <div class="text-weight-bold row justify-center">
             Your portfolio. Your income.

@@ -1,29 +1,68 @@
 <template>
-  <q-page class="q-pa-md">
-    <q-card class="text-center shadow-8 bg-light-blue-1">
-      <q-card-section>
-        <q-markup-table
-          separator="cell"
-          flat
-          dense
-          class="bg-light-blue-1"
-          style="max-height: 81vh"
-        >
+  <q-page class="column q-pa-md">
+    <q-card class="text-center shadow-8 bg-light-blue-1 col relative-position">
+      <q-card-section class="absolute-full scroll">
+        <q-markup-table separator="cell" flat dense class="bg-light-blue-1 tableClip">
           <thead>
             <tr>
               <th class="bg-green-2"><b>Ticker</b></th>
-              <th class="bg-green-2">Jan</th>
-              <th class="bg-green-2">Feb</th>
-              <th class="bg-green-2">Mar</th>
-              <th class="bg-green-2">Apr</th>
-              <th class="bg-green-2">May</th>
-              <th class="bg-green-2">Jun</th>
-              <th class="bg-green-2">Jul</th>
-              <th class="bg-green-2">Aug</th>
-              <th class="bg-green-2">Sep</th>
-              <th class="bg-green-2">Oct</th>
-              <th class="bg-green-2">Nov</th>
-              <th class="bg-green-2">Dec</th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('January')"
+              >
+                Jan
+              </th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('February')"
+              >
+                Feb
+              </th>
+              <th class="bg-green-2 cursor-pointer" @click="gotoMonth('March')">
+                Mar
+              </th>
+              <th class="bg-green-2 cursor-pointer" @click="gotoMonth('April')">
+                Apr
+              </th>
+              <th class="bg-green-2 cursor-pointer" @click="gotoMonth('May')">
+                May
+              </th>
+              <th class="bg-green-2 cursor-pointer" @click="gotoMonth('June')">
+                Jun
+              </th>
+              <th class="bg-green-2 cursor-pointer" @click="gotoMonth('July')">
+                Jul
+              </th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('August')"
+              >
+                Aug
+              </th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('Septemper')"
+              >
+                Sep
+              </th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('October')"
+              >
+                Oct
+              </th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('November')"
+              >
+                Nov
+              </th>
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="gotoMonth('December')"
+              >
+                Dec
+              </th>
               <th class="bg-green-2"><b>Total</b></th>
               <th class="bg-green-2">Jan</th>
               <th class="bg-green-2">Feb</th>
@@ -171,7 +210,10 @@
           </tfoot>
         </q-markup-table>
       </q-card-section>
-      <q-inner-loading :showing="yearlyPaymentLoading">
+      <q-inner-loading
+        :showing="yearlyPaymentLoading"
+        class="spinnerInnerLoading"
+      >
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
@@ -185,12 +227,15 @@ import { showAPIError } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
+import { useRouter } from 'vue-router';
 export default defineComponent({
   name: 'YearlyPaymentMatrix',
 
   setup() {
     const store = stockdivStore();
+    const router = useRouter();
     return {
+      router,
       yearlyPaymentLoading: ref<boolean>(false),
       store,
       filters,
@@ -238,6 +283,9 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoMonth(month: string) {
+      this.router.push({ path: `/monthlyDividendsView/${month}` });
+    },
     getMatrixCellColor(cellContentType: number): string {
       switch (cellContentType) {
         case 0:
@@ -250,42 +298,51 @@ export default defineComponent({
           return 'text-projected';
       }
     },
+    loadMatrixData() {
+      this.yearlyPaymentLoading = true;
+      axios
+        .all([
+          api.get(
+            `dividend/portfolio/${this.store.selectedPortfolio}/yearlyPaymentMatrix`
+          ),
+        ])
+        .then(
+          axios.spread(async (...responses) => {
+            this.matrixData = responses[0].data.matrixData;
+            this.matrixDataFooter = responses[0].data.matrixFooter;
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.yearlyPaymentLoading = false;
+        });
+    },
   },
   mounted() {
-    this.yearlyPaymentLoading = true;
-    axios
-      .all([
-        api.get(
-          `dividend/portfolio/${this.store.selectedPortfolio}/yearlyPaymentMatrix`
-        ),
-      ])
-      .then(
-        axios.spread(async (...responses) => {
-          this.matrixData = responses[0].data.matrixData;
-          this.matrixDataFooter = responses[0].data.matrixFooter;
-        })
-      )
-      .catch((err: AxiosError) => {
-        showAPIError(err);
-      })
-      .finally(() => {
-        this.yearlyPaymentLoading = false;
-      });
+    this.loadMatrixData();
   },
 });
 </script>
 <style>
-table thead,
-table tfoot {
-  position: sticky;
-  z-index: 1;
+.tableClip {
+  overflow: clip;
 }
 table thead {
-  inset-block-start: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #E1F5FE !important;
+  inset-block-start: -20px;
 }
+
 table tfoot {
-  inset-block-end: 0;
-  background: #e1f5fe;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  background: #E1F5FE !important;
+  inset-block-end: -20px;
 }
 
 .text-received {
@@ -298,5 +355,9 @@ table tfoot {
 
 .text-projected {
   color: #8f469e !important;
+}
+
+.spinnerInnerLoading {
+  z-index: 2;
 }
 </style>

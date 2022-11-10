@@ -30,8 +30,16 @@
 
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h6 q-mt-sm">
+        <div class="text-h6 q-mt-sm row no-wrap justify-center">
           Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
+          <q-icon
+            color="blue"
+            name="notifications"
+            class="cursor-pointer q-my-xs q-mx-sm"
+            @click="showDividendNotifications()"
+          >
+            <q-tooltip class="bg-indigo">Dividend Notifications</q-tooltip>
+          </q-icon>
         </div>
         <div class="text-h6 q-mt-sm">
           {{ nextDividendInfo }}
@@ -40,7 +48,7 @@
           <div v-for="(ticker, index) in nextDivTickers" v-bind:key="ticker">
             <q-chip
               clickable
-              @click="clickNextDivTicker(ticker)"
+              @click="gotoTickerPage(ticker)"
               color="teal"
               class="q-ma-sm"
               text-color="white"
@@ -177,7 +185,7 @@
             title-class="timelineTitleFont"
             v-model:item-selected="timelineItem"
             :clickable="true"
-            @click="gotoTicker()"
+            @click="clickTimeLineTicker()"
           />
         </q-scroll-area>
       </q-card-section>
@@ -193,7 +201,7 @@ import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
 import { IDiversification } from 'src/utils/interfaces/IDiversification';
 import { IPriceAndDate } from 'src/utils/interfaces/IPriceAndDate';
-import { showAPIError, showNotification } from 'src/utils/utils';
+import { showAPIError } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
@@ -245,9 +253,11 @@ export default defineComponent({
               total: {
                 enabled: true,
                 formatter: function () {
-                  return portfolioInvested.value === 0? 0: filters.formatToPercentage(
-                    (dividendsSoFar.value / portfolioInvested.value) * 100
-                  );
+                  return portfolioInvested.value === 0
+                    ? 0
+                    : filters.formatToPercentage(
+                        (dividendsSoFar.value / portfolioInvested.value) * 100
+                      );
                 },
                 style: {
                   fontSize: '13px',
@@ -582,7 +592,12 @@ export default defineComponent({
       }),
       weekChartOptions: ref({
         tooltip: {
-          enabled: false,
+          enabled: true,
+          y: {
+            formatter: function (value: number) {
+              return filters.formatToCurrency(value);
+            },
+          },
         },
         colors: ['#90EE90', '#ADD8E6', '#CBC3E3'],
         labels: ['Received', 'Remain', 'Projected'],
@@ -632,7 +647,12 @@ export default defineComponent({
       }),
       monthChartOptions: ref({
         tooltip: {
-          enabled: false,
+          enabled: true,
+          y: {
+            formatter: function (value: number) {
+              return filters.formatToCurrency(value);
+            },
+          },
         },
         legend: {
           show: false,
@@ -685,7 +705,12 @@ export default defineComponent({
       }),
       yearChartOptions: ref({
         tooltip: {
-          enabled: false,
+          enabled: true,
+          y: {
+            formatter: function (value: number) {
+              return filters.formatToCurrency(value);
+            },
+          },
         },
         colors: ['#90EE90', '#ADD8E6', '#CBC3E3'],
         labels: ['Received', 'Remain', 'Projected'],
@@ -942,17 +967,20 @@ export default defineComponent({
     };
   },
   methods: {
-    gotoTicker() {
+    showDividendNotifications() {
+      //
+    },
+    clickTimeLineTicker() {
       if (!this.timelineItem) return;
+      this.gotoTickerPage(this.timelineItem.ticker);
+    },
+    gotoTickerPage(ticker: string) {
       this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${this.timelineItem.ticker}`,
+        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
       });
     },
     getTickerIcon(index: number) {
       return this.nextDivTickersLogos[index];
-    },
-    clickNextDivTicker(ticker: string) {
-      showNotification(`Selected ${ticker}`);
     },
     runPortfolioRelatedAPIs() {
       this.marketValueLoading = true;
@@ -1012,7 +1040,7 @@ export default defineComponent({
               )}`;
             else if (responses[1].data.days === 1)
               this.nextDividendInfo = `Tomorrow you should get ${filters.formatToCurrency(
-                responses[1].data.result.amount
+                responses[1].data.amount
               )}`;
             else
               this.nextDividendInfo = `In ${

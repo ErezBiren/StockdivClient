@@ -34,14 +34,23 @@
 
             <q-icon
               color="blue"
-              name="logout"
+              name="announcement"
               class="cursor-pointer q-my-xs q-mx-sm"
+              @click="showAnnouncements()"
+            >
+              <q-tooltip class="bg-indigo">Announcements</q-tooltip>
+            </q-icon>
+
+            <q-space />
+            <q-icon
+              color="blue"
+              name="logout"
+              class="cursor-pointer q-my-sm q-mx-sm"
               @click="logout()"
             >
               <q-tooltip class="bg-indigo">Logout</q-tooltip>
             </q-icon>
 
-            <q-space />
             <q-btn
               color="secondary"
               label="Donate"
@@ -333,6 +342,9 @@ export default defineComponent({
     };
   },
   methods: {
+    showAnnouncements() {
+      //
+    },
     gotoYearlyPaymentMatrix() {
       this.router.push({ path: '/yearlyPaymentMatrix' });
     },
@@ -699,7 +711,7 @@ export default defineComponent({
   },
 });
 </script>
-<style>
+<style scoped>
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
   opacity: 0;
