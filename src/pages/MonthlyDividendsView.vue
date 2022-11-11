@@ -1,40 +1,40 @@
 <template>
   <q-page class="column q-pa-md">
-      <q-card class="text-center shadow-8 bg-light-blue-1 col relative-position">
-        <q-card-section class="absolute-full scroll">
-          <q-calendar-month
-            ref="calendar"
-            v-model="selectedDate"
-            date-type="rounded"
-            animated
-            style="background: #e1f5fe"
-          >
-            <template #day="{ scope: { timestamp } }">
-              <template
-                v-for="event in eventsMap[timestamp.date]"
-                :key="event.id"
-              >
-                <div :class="getEntryColor(event.eventType)">
-                  <q-img class="q-mr-xs"
-                    :src="event.logo"
-                    style="height: 24px; max-width: 24px"
-                  />
-                  {{ event.ticker }}
-                  {{
-                    event.eventType === EventTypeEnum.PAYDAY
-                      ? 'Pay:'
-                      : 'Ex:'
-                  }}
-                  {{ filters.formatToCurrency(event.amount) }} ({{ filters.formatToCurrency(event.total) }})
-                </div>
-              </template>
+    <q-card class="text-center shadow-8 bg-light-blue-1 col relative-position">
+      <q-card-section class="absolute-full scroll">
+        <q-calendar-month
+          ref="calendar"
+          v-model="selectedDate"
+          date-type="rounded"
+          animated
+          style="background: #e1f5fe"
+        >
+          <template #day="{ scope: { timestamp } }">
+            <template
+              v-for="event in eventsMap[timestamp.date]"
+              :key="event.id"
+            >
+              <div :class="getEntryColor(event.eventType)">
+                <q-img
+                  class="q-ma-xs cursor-pointer"
+                  @click="gotoTickerPage(event.ticker)"
+                  :src="event.logo"
+                  style="height: 16px; max-width: 16px"
+                />
+                {{ event.ticker }}
+                {{ event.eventType === EventTypeEnum.PAYDAY ? 'Pay:' : 'Ex:' }}
+                {{ filters.formatToCurrency(event.amount) }} ({{
+                  filters.formatToCurrency(event.total)
+                }})
+              </div>
             </template>
-          </q-calendar-month>
-        </q-card-section>
-        <q-inner-loading :showing="monthlyViewLoading">
-          <q-spinner-hourglass size="50px" color="primary" />
-        </q-inner-loading>
-      </q-card>
+          </template>
+        </q-calendar-month>
+      </q-card-section>
+      <q-inner-loading :showing="monthlyViewLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
   </q-page>
 </template>
 
@@ -52,6 +52,7 @@ import { EventTypeEnum } from '../utils/enums/EventTypeEnum';
 import { api } from 'src/boot/axios';
 import { stockdivStore } from '../stores/stockdivStore';
 import { showAPIError } from 'src/utils/utils';
+import { useRouter } from 'vue-router';
 export default defineComponent({
   name: 'MonthlyDividendsView',
   components: {
@@ -60,8 +61,10 @@ export default defineComponent({
   setup() {
     let month = 0;
     const store = stockdivStore();
+    const router = useRouter();
     return {
       month,
+      router,
       store,
       filters,
       EventTypeEnum,
@@ -71,8 +74,14 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoTickerPage(ticker: string) {
+      this.router.push({
+        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+      });
+    },
     getEntryColor(eventType: EventTypeEnum) {
-      if (eventType === EventTypeEnum.EXDAY) return 'row no-wrap q-my-xs text-blue-5';
+      if (eventType === EventTypeEnum.EXDAY)
+        return 'row no-wrap q-my-xs text-blue-5';
       else return 'row no-wrap q-my-xs text-green-5';
     },
     getMonthEvents() {

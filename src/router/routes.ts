@@ -22,6 +22,10 @@ const routes: RouteRecordRaw[] = [
         path: '/monthlyDividendsView/:month',
         component: () => import('src/pages/MonthlyDividendsView.vue'),
       },
+      {
+        path: '/dividendAlerts',
+        component: () => import('src/pages/DividendAlerts.vue'),
+      },
     ],
   },
 

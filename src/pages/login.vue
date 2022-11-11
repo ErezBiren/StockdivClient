@@ -22,6 +22,7 @@
             :type="isPwd ? 'password' : 'text'"
             label="Password"
             class="q-my-sm"
+            @keyup.enter="letMeIn()"
           >
             <template v-slot:append>
               <q-icon

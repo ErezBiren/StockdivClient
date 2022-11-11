@@ -27,13 +27,14 @@
         <div :class="getMarketValueColor">
           {{ filters.formatToCurrency(tickerPrice) }}
           <div v-if="tickerInvested > 0">
-            (<q-icon :name="getArrow" />{{
+            &nbsp;(<q-icon class="q-mr-xs" :name="getArrow" />{{
               filters.formatToPercentage(plPercentage)
             }})
           </div>
         </div>
         <div :class="getDailyChangeColor">
           Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+            class="q-mr-xs"
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})
         </div>
@@ -168,18 +169,23 @@
                 {{ filters.formatToCurrency(item.amount) }}
               </td>
               <td :class="getIncreasePercentColor(item.increasePercent)">
-                <q-icon :name="getIncreaseArrow(item.increasePercent)" />{{
+                <q-icon
+                  class="q-mr-xs"
+                  :name="getIncreaseArrow(item.increasePercent)"
+                />{{
                   item.increasePercent === 0
                     ? ''
                     : filters.formatToPercentage(item.increasePercent)
                 }}
               </td>
               <td>
-                <q-checkbox dense
+                <q-checkbox
+                  dense
                   disable
                   v-model="item.special"
                   checked-icon="task_alt"
-                  unchecked-icon="highlight_off"/>
+                  unchecked-icon="highlight_off"
+                />
               </td>
             </tr>
           </tbody>
@@ -782,9 +788,12 @@ export default defineComponent({
               total: {
                 enabled: true,
                 formatter: function () {
-                  return tickerInvested.value === 0? 0: filters.formatToPercentage(
-                    (tickerDividendsSoFar.value / tickerInvested.value) * 100
-                  );
+                  return tickerInvested.value === 0
+                    ? 0
+                    : filters.formatToPercentage(
+                        (tickerDividendsSoFar.value / tickerInvested.value) *
+                          100
+                      );
                 },
                 style: {
                   fontSize: '13px',

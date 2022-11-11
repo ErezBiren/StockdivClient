@@ -5,12 +5,12 @@
         <div class="text-h5">{{ store.selectedPortfolio }}</div>
         <q-separator />
         <div :class="getMarketValueColor">
-          {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon
+          {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon class="q-mr-xs"
             :name="getArrow"
           />{{ filters.formatToPercentage(plPercentage) }})
         </div>
         <div :class="getDailyChangeColor">
-          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon class="q-mr-xs"
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})
         </div>
@@ -33,12 +33,12 @@
         <div class="text-h6 q-mt-sm row no-wrap justify-center">
           Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
           <q-icon
-            color="blue"
-            name="notifications"
+            :color="getDividendAlertsIconColor"
+            :name="getDividendAlertsIcon"
             class="cursor-pointer q-my-xs q-mx-sm"
-            @click="showDividendNotifications()"
+            @click="showDividendAlerts()"
           >
-            <q-tooltip class="bg-indigo">Dividend Notifications</q-tooltip>
+            <q-tooltip class="bg-indigo">Dividend Alerts</q-tooltip>
           </q-icon>
         </div>
         <div class="text-h6 q-mt-sm">
@@ -206,6 +206,7 @@ import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
 import { useRouter } from 'vue-router';
+import { IDividendAlert } from 'src/utils/interfaces/IDividendAlert';
 
 export default defineComponent({
   name: 'overView',
@@ -967,8 +968,8 @@ export default defineComponent({
     };
   },
   methods: {
-    showDividendNotifications() {
-      //
+    showDividendAlerts() {
+      this.router.push({ path: '/dividendAlerts' });
     },
     clickTimeLineTicker() {
       if (!this.timelineItem) return;
@@ -1021,6 +1022,7 @@ export default defineComponent({
           api.get(`dividend/portfolio/${this.store.selectedPortfolio}/soFar`),
           api.get(`dividend/portfolio/${this.store.selectedPortfolio}/next`),
           api.get(`dividend/portfolio/${this.store.selectedPortfolio}/periods`),
+          api.get(`dividend/portfolio/${this.store.selectedPortfolio}/alerts`),
         ])
         .then(
           axios.spread((...responses) => {
@@ -1054,6 +1056,8 @@ export default defineComponent({
             this.yearlyChartSeries = responses[2].data.yearDividend;
             this.monthlyChartSeries = responses[2].data.monthDividend;
             this.weeklyChartSeries = responses[2].data.weekDividend;
+
+            this.store.dividendAlerts = responses[3].data;
           })
         )
         .catch((err: AxiosError) => {
@@ -1244,6 +1248,22 @@ export default defineComponent({
     },
   },
   computed: {
+    getDividendAlertsIconColor(): string {
+      return this.store.dividendAlerts.length === 0 ||
+        this.store.dividendAlerts.filter(
+          (item: IDividendAlert) => item.redFlag === 1
+        ).length === 0
+        ? 'blue'
+        : 'red';
+    },
+    getDividendAlertsIcon(): string {
+      return this.store.dividendAlerts.length === 0 ||
+        this.store.dividendAlerts.filter(
+          (item: IDividendAlert) => item.redFlag === 1
+        ).length === 0
+        ? 'notifications'
+        : 'notifications_active';
+    },
     dailyChangePercentage(): number {
       if (this.portfolioMarketValue - this.dailyChange !== 0) {
         return (

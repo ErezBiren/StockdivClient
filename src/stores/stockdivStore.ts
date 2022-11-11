@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { IDividendAlert } from 'src/utils/interfaces/IDividendAlert';
 
 export const stockdivStore = defineStore('stockdiv', {
   state: () => ({
@@ -10,6 +11,7 @@ export const stockdivStore = defineStore('stockdiv', {
       defaultTax: 0,
       portfolios: [],
     },
+    dividendAlerts: [] as IDividendAlert[],
   }),
 
   getters: {
@@ -30,6 +32,9 @@ export const stockdivStore = defineStore('stockdiv', {
     },
     getPortfoliosSettings(state) {
       return state.settings.portfolios;
+    },
+    getDividendAlerts(state) {
+      return state.dividendAlerts;
     },
   },
 

@@ -2,7 +2,12 @@
   <q-page class="column q-pa-md">
     <q-card class="text-center shadow-8 bg-light-blue-1 col relative-position">
       <q-card-section class="absolute-full scroll">
-        <q-markup-table separator="cell" flat dense class="bg-light-blue-1 tableClip">
+        <q-markup-table
+          separator="cell"
+          flat
+          dense
+          class="bg-light-blue-1 tableClip"
+        >
           <thead>
             <tr>
               <th class="bg-green-2"><b>Ticker</b></th>
@@ -70,121 +75,89 @@
           </thead>
           <tbody>
             <tr v-for="(item, i) in matrixData" v-bind:key="i">
-              <td>
-                <b>{{ item[0] }}</b>
+              <td class="text-left">
+                <b
+                  ><q-img
+                    class="q-ma-sm"
+                    :src="item[16]"
+                    style="height: 16px; max-width: 16px"
+                  />{{ item[0] }}</b
+                >
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[1][1])">
-                  {{
-                    item[1][0] === 0 ? '' : filters.formatToCurrency(item[1][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[1][1])">
+                {{
+                  item[1][0] === 0 ? '' : filters.formatToCurrency(item[1][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[2][1])">
-                  {{
-                    item[2][0] === 0 ? '' : filters.formatToCurrency(item[2][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[2][1])">
+                {{
+                  item[2][0] === 0 ? '' : filters.formatToCurrency(item[2][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[3][1])">
-                  {{
-                    item[3][0] === 0 ? '' : filters.formatToCurrency(item[3][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[3][1])">
+                {{
+                  item[3][0] === 0 ? '' : filters.formatToCurrency(item[3][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[4][1])">
-                  {{
-                    item[4][0] === 0 ? '' : filters.formatToCurrency(item[4][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[4][1])">
+                {{
+                  item[4][0] === 0 ? '' : filters.formatToCurrency(item[4][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[5][1])">
-                  {{
-                    item[5][0] === 0 ? '' : filters.formatToCurrency(item[5][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[5][1])">
+                {{
+                  item[5][0] === 0 ? '' : filters.formatToCurrency(item[5][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[6][1])">
-                  {{
-                    item[6][0] === 0 ? '' : filters.formatToCurrency(item[6][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[6][1])">
+                {{
+                  item[6][0] === 0 ? '' : filters.formatToCurrency(item[6][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[7][1])">
-                  {{
-                    item[7][0] === 0 ? '' : filters.formatToCurrency(item[7][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[7][1])">
+                {{
+                  item[7][0] === 0 ? '' : filters.formatToCurrency(item[7][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[8][1])">
-                  {{
-                    item[8][0] === 0 ? '' : filters.formatToCurrency(item[8][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[8][1])">
+                {{
+                  item[8][0] === 0 ? '' : filters.formatToCurrency(item[8][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[9][1])">
-                  {{
-                    item[9][0] === 0 ? '' : filters.formatToCurrency(item[9][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[9][1])">
+                {{
+                  item[9][0] === 0 ? '' : filters.formatToCurrency(item[9][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[10][1])">
-                  {{
-                    item[10][0] === 0
-                      ? ''
-                      : filters.formatToCurrency(item[10][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[10][1])">
+                {{
+                  item[10][0] === 0 ? '' : filters.formatToCurrency(item[10][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[11][1])">
-                  {{
-                    item[11][0] === 0
-                      ? ''
-                      : filters.formatToCurrency(item[11][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[11][1])">
+                {{
+                  item[11][0] === 0 ? '' : filters.formatToCurrency(item[11][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[12][1])">
-                  {{
-                    item[12][0] === 0
-                      ? ''
-                      : filters.formatToCurrency(item[12][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[12][1])">
+                {{
+                  item[12][0] === 0 ? '' : filters.formatToCurrency(item[12][0])
+                }}
               </td>
               <td>
                 {{
                   item[13][0] === 0 ? '' : filters.formatToCurrency(item[13][0])
                 }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[14][1])">
-                  {{
-                    item[14][0] === 0
-                      ? ''
-                      : filters.formatToCurrency(item[14][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[14][1])">
+                {{
+                  item[14][0] === 0 ? '' : filters.formatToCurrency(item[14][0])
+                }}
               </td>
-              <td>
-                <div :class="getMatrixCellColor(item[15][1])">
-                  {{
-                    item[15][0] === 0
-                      ? ''
-                      : filters.formatToCurrency(item[15][0])
-                  }}
-                </div>
+              <td :class="getMatrixCellColor(item[15][1])">
+                {{
+                  item[15][0] === 0 ? '' : filters.formatToCurrency(item[15][0])
+                }}
               </td>
             </tr>
           </tbody>
@@ -257,7 +230,8 @@ export default defineComponent({
             [number, number],
             [number, number],
             [number, number],
-            [number, number]
+            [number, number],
+            string
           ][]
         >(),
       matrixDataFooter: ref<
@@ -333,7 +307,7 @@ table thead {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #E1F5FE !important;
+  background: #e1f5fe !important;
   inset-block-start: -20px;
 }
 
@@ -341,7 +315,7 @@ table tfoot {
   position: sticky;
   bottom: 0;
   z-index: 1;
-  background: #E1F5FE !important;
+  background: #e1f5fe !important;
   inset-block-end: -20px;
 }
 
