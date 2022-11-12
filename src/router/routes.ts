@@ -26,6 +26,10 @@ const routes: RouteRecordRaw[] = [
         path: '/dividendAlerts',
         component: () => import('src/pages/DividendAlerts.vue'),
       },
+      {
+        path: '/announcements',
+        component: () => import('src/pages/Announcements.vue'),
+      },
     ],
   },
 

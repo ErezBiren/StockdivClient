@@ -1,50 +1,34 @@
 <template>
   <q-page class="column q-pa-md">
-    <q-card class="text-center shadow-8 bg-light-blue-1 col relative-position">
-      <q-card-section class="absolute-full scroll">
-        <q-markup-table
-          separator="cell"
-          flat
-          dense
-          class="bg-light-blue-1 tableClip"
-        >
-          <thead>
-            <tr>
-              <th class="bg-green-2"><b>Ticker</b></th>
-              <th class="bg-green-2">Date</th>
-              <th class="bg-green-2">Alert</th>
-              <th class="bg-green-2">Percentage</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, i) in store.dividendAlerts" v-bind:key="i">
-              <td>
-                <b
-                  ><q-img
-                    class="q-ma-sm"
-                    :src="item.logo"
-                    style="height: 16px; max-width: 16px"
-                  />{{ item.ticker }}</b
-                >
-              </td>
-              <td>
-                {{ item.eventDate.substring(0, 10) }}
-              </td>
-              <td :class="getAlertColor(item.redFlag)">
-                {{ item.alert }}
-              </td>
-              <td :class="getAlertColor(item.redFlag)">
-                <div v-if="item.percentage != 0">
-                  <q-icon class="q-mr-xs" :name="getArrow(item.percentage)" />{{
-                    filters.formatToPercentage(item.percentage)
-                  }}
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </q-markup-table>
-      </q-card-section>
-    </q-card>
+    <div class="row justify-around">
+      <q-card
+        class="text-center shadow-8 bg-light-blue-1 q-ma-md"
+        v-for="(item, i) in store.dividendAlerts"
+        v-bind:key="i"
+      >
+        <q-card-section>
+          <b
+            ><q-img
+              class="q-ma-sm"
+              :src="item.logo"
+              style="height: 16px; max-width: 16px"
+            />{{ item.ticker }}</b
+          >
+          <q-separator />
+          {{ item.eventDate.substring(0, 10) }}
+          <q-separator />
+        </q-card-section>
+        <q-card-section :class="getAlertColor(item.redFlag)">
+          {{ item.alert }}
+          <q-separator />
+          <div v-if="item.percentage != 0">
+            <q-icon class="q-mr-xs" :name="getArrow(item.percentage)" />{{
+              filters.formatToPercentage(item.percentage)
+            }}
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
   </q-page>
 </template>
 

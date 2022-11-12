@@ -32,7 +32,7 @@
       <q-card-section>
         <div class="text-h6 q-mt-sm row no-wrap justify-center">
           Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
-          <q-icon
+          <q-icon v-if="store.dividendAlerts.length > 0"
             :color="getDividendAlertsIconColor"
             :name="getDividendAlertsIcon"
             class="cursor-pointer q-my-xs q-mx-sm"

@@ -12,6 +12,7 @@ export const stockdivStore = defineStore('stockdiv', {
       portfolios: [],
     },
     dividendAlerts: [] as IDividendAlert[],
+    announcements: [] as { theDate: string; theMessage: string }[],
   }),
 
   getters: {
@@ -35,6 +36,9 @@ export const stockdivStore = defineStore('stockdiv', {
     },
     getDividendAlerts(state) {
       return state.dividendAlerts;
+    },
+    getAnnouncements(state) {
+      return state.announcements;
     },
   },
 

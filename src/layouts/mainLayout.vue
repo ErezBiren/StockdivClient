@@ -3,7 +3,7 @@
     <q-header elevated v-if="store.token !== ''">
       <q-toolbar class="bg-green-2">
         <q-toolbar-title
-          ><div class="text-indigo row">
+          ><div class="text-indigo row no-wrap">
             Hello {{ userName }}
             <q-icon
               color="blue"
@@ -32,29 +32,42 @@
               <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
             </q-icon>
 
-            <q-icon
+            <q-separator vertical />
+            <q-btn
               color="blue"
-              name="announcement"
-              class="cursor-pointer q-my-xs q-mx-sm"
+              flat dense
+              icon="announcement"
+              size="sm"
+              style="margin-top: -5px"
+              class="cursor-pointer q-ml-md"
+              v-if="store.announcements.length > 0"
               @click="showAnnouncements()"
             >
+              <q-badge                                
+                color="red"
+                floating
+                transparent
+                style="margin-top: 11px"
+                class="q-mr-md"
+                :label="store.announcements.length"
+              />
               <q-tooltip class="bg-indigo">Announcements</q-tooltip>
-            </q-icon>
+            </q-btn>
 
-            <q-space />
             <q-icon
               color="blue"
-              name="logout"
-              class="cursor-pointer q-my-sm q-mx-sm"
+              name="logout"              
+              class="cursor-pointer q-ml-md q-mt-xs"
               @click="logout()"
             >
               <q-tooltip class="bg-indigo">Logout</q-tooltip>
             </q-icon>
-
+            <q-space/>
             <q-btn
               color="secondary"
               label="Donate"
               push
+              dense
               class="q-mt-xs"
               size="small"
               @click="gotoDonate()"
@@ -122,6 +135,9 @@
           </div>
         </q-toolbar-title>
       </q-toolbar>
+      <q-inner-loading :showing="loginLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
     </q-header>
 
     <q-page-container>
@@ -318,6 +334,7 @@ export default defineComponent({
       store,
       router,
       userName: ref<string>(''),
+      loginLoading: ref<boolean>(false),
       showSettingsPopup: ref<boolean>(false),
       userNameEdit: ref<string>(''),
       csvToImport: ref(),
@@ -343,7 +360,7 @@ export default defineComponent({
   },
   methods: {
     showAnnouncements() {
-      //
+      this.router.push({ path: '/announcements' });
     },
     gotoYearlyPaymentMatrix() {
       this.router.push({ path: '/yearlyPaymentMatrix' });
@@ -672,11 +689,13 @@ export default defineComponent({
         });
     },
     runOnLoginSuccess() {
+      this.loginLoading = true;
       axios
         .all([
           api.get('user/name'),
           api.get('portfolio/all'),
           api.get('user/settings'),
+          api.get('user/messages'),
         ])
         .then(
           axios.spread(async (...responses) => {
@@ -688,6 +707,8 @@ export default defineComponent({
             this.store.selectedPortfolio = this.selectedPortfolio;
             this.showNoTransactionsDialog = this.store.portfolios.length === 0;
             this.store.settings = responses[2].data;
+            this.store.announcements = responses[3].data;
+
             if (this.router.currentRoute.value.fullPath.includes('login'))
               this.router.push({ path: '/overview' });
             else bus.emit('changesInTransactions');
@@ -695,6 +716,9 @@ export default defineComponent({
         )
         .catch((err: AxiosError) => {
           showAPIError(err);
+        })
+        .finally(() => {
+          this.loginLoading = false;
         });
     },
   },
