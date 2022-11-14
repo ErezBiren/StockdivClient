@@ -547,6 +547,7 @@ import {
   showAPIError,
   showNotification,
 } from 'src/utils/utils';
+import { getCurrencySymbol } from '../utils/utils';
 import { defineComponent, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { stockdivStore } from '../stores/stockdivStore';
@@ -572,6 +573,7 @@ export default defineComponent({
     let tickerMarketValue = ref(0);
 
     return {
+      getCurrencySymbol,
       editedTransaction: ref<ITransactionData>(),
       timelineItem: ref(),
       timelineItems: ref<{ title: string; content: string }[]>([]),
@@ -1048,15 +1050,9 @@ export default defineComponent({
     setNewPortfolio(val: string) {
       this.newTransactionPortfolio = val;
     },
-    async getTickerPrice(
-      ticker: string,
-      currency: string,
-      when: string
-    ): Promise<number> {
+    async getTickerPrice(ticker: string, when: string): Promise<number> {
       try {
-        let { data } = await api.get(
-          `ticker/${ticker}/price?toCurrency=${currency}&ofDate=${when}`
-        );
+        let { data } = await api.get(`ticker/${ticker}/price?ofDate=${when}`);
         return data;
       } catch (err) {
         showAPIError(err);
@@ -1066,8 +1062,7 @@ export default defineComponent({
     async getPriceForTransaction() {
       this.serverProcessing = true;
       this.newTransactionSharePrice = await this.getTickerPrice(
-        this.ticker,
-        this.tickerCurrency,
+        this.ticker,        
         this.newTransactionWhen
       );
       this.sharePriceChange();
@@ -1154,7 +1149,7 @@ export default defineComponent({
         portfolio: this.newTransactionPortfolio,
         sharePrice: this.newTransactionSharePrice,
         shares: this.newTransactionShares,
-        when: `${this.newTransactionWhen}T00:00:00.000Z`,
+        when: `${this.newTransactionWhen}`,
         currency: this.tickerCurrency,
       });
       this.serverProcessing = true;
@@ -1228,8 +1223,7 @@ export default defineComponent({
             this.tickerLogo = responses[1].data;
             this.tickerCurrency = responses[2].data;
             this.tickerPrice = await this.getTickerPrice(
-              this.ticker,
-              this.tickerCurrency,
+              this.ticker,              
               date.formatDate(new Date(), 'YYYY-MM-DD')
             );
             this.tickerAveragePrice = responses[3].data;
@@ -1447,14 +1441,6 @@ export default defineComponent({
         this.tickerFrequency
       }<br/>${averagePrice ? averagePrice : ''}`;
       return tooltip;
-    },
-    getCurrencySymbol(): string {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: this.tickerCurrency,
-      })
-        .format(1)
-        .substring(0, 1);
     },
     dailyChangePercentage(): number {
       if (this.tickerPrice - this.dailyChange !== 0) {

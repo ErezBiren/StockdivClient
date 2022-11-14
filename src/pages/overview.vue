@@ -2,15 +2,35 @@
   <q-page v-if="store.token !== '' && store.portfolios.length > 0">
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5">{{ store.selectedPortfolio }}</div>
+        <div class="text-h5 row no-wrap justify-center">
+          {{ store.selectedPortfolio }}
+          <q-icon
+            color="blue"
+            name="account_balance_wallet"
+            class="cursor-pointer q-my-xs q-ml-sm"
+            @click="gotoPortfolio()"
+          >
+            <q-tooltip class="bg-indigo">Show portfolio</q-tooltip>
+          </q-icon>
+          <q-icon
+            color="blue"
+            name="filter_list"
+            class="cursor-pointer q-my-xs q-ml-sm"
+            @click="gotoScreener()"
+          >
+            <q-tooltip class="bg-indigo">Show screener</q-tooltip>
+          </q-icon>
+        </div>
         <q-separator />
         <div :class="getMarketValueColor">
-          {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon class="q-mr-xs"
+          {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon
+            class="q-mr-xs"
             :name="getArrow"
           />{{ filters.formatToPercentage(plPercentage) }})
         </div>
         <div :class="getDailyChangeColor">
-          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon class="q-mr-xs"
+          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+            class="q-mr-xs"
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})
         </div>
@@ -23,7 +43,7 @@
           :series="portfolioChartSeries"
         ></apexchart>
       </q-card-section>
-      <q-inner-loading :showing="marketValueLoading">
+      <q-inner-loading :showing="marketValueLoading || dividendsInfoLoading">
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
@@ -32,13 +52,22 @@
       <q-card-section>
         <div class="text-h6 q-mt-sm row no-wrap justify-center">
           Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
-          <q-icon v-if="store.dividendAlerts.length > 0"
+          <q-icon
+            v-if="store.dividendAlerts.length > 0"
             :color="getDividendAlertsIconColor"
             :name="getDividendAlertsIcon"
             class="cursor-pointer q-my-xs q-mx-sm"
             @click="showDividendAlerts()"
           >
             <q-tooltip class="bg-indigo">Dividend Alerts</q-tooltip>
+          </q-icon>
+          <q-icon
+            color="blue"
+            name="event_note"
+            class="cursor-pointer q-my-xs"
+            @click="gotoYearlyPaymentMatrix()"
+          >
+            <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
           </q-icon>
         </div>
         <div class="text-h6 q-mt-sm">
@@ -968,6 +997,15 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoPortfolio() {
+      this.router.push({ path: '/portfolio' });
+    },
+    gotoScreener() {
+      this.router.push({ path: '/screener' });
+    },
+    gotoYearlyPaymentMatrix() {
+      this.router.push({ path: '/yearlyPaymentMatrix' });
+    },
     showDividendAlerts() {
       this.router.push({ path: '/dividendAlerts' });
     },

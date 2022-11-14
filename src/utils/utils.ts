@@ -45,15 +45,24 @@ export const getTodayDate = (full: boolean): string => {
 };
 
 export const filters = {
-  formatToCurrency(value: number) {
+  formatToCurrency(value: number): string {
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      maximumFractionDigits: 4
+      maximumFractionDigits: 4,
     });
     return formatter.format(value);
   },
-  formatToPercentage(value: number) {
+  formatToPercentage(value: number): string {
     return `${value.toFixed(2)}%`;
   },
+};
+
+export const getCurrencySymbol = (currency: string): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+  })
+    .format(1)
+    .substring(0, 1);
 };

@@ -3,7 +3,16 @@
     <q-header elevated v-if="store.token !== ''">
       <q-toolbar class="bg-green-2">
         <q-toolbar-title
-          ><div class="text-indigo row no-wrap">
+          ><div class="text-indigo row no-wrap q-mt-sm">
+            <q-btn
+              color="secondary"
+              label="Donate"
+              push
+              dense
+              class="q-mr-sm"
+              size="small"
+              @click="gotoDonate()"
+            />
             Hello {{ userName }}
             <q-icon
               color="blue"
@@ -23,27 +32,19 @@
               <q-tooltip class="bg-indigo">Overview</q-tooltip>
             </q-icon>
 
-            <q-icon
-              color="blue"
-              name="event_note"
-              class="cursor-pointer q-my-xs q-mx-sm"
-              @click="gotoYearlyPaymentMatrix()"
-            >
-              <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
-            </q-icon>
-
-            <q-separator vertical />
+            <q-space />
             <q-btn
               color="blue"
-              flat dense
+              flat
+              dense
               icon="announcement"
               size="sm"
               style="margin-top: -5px"
-              class="cursor-pointer q-ml-md"
+              class="cursor-pointer q-my-xs q-mx-sm"
               v-if="store.announcements.length > 0"
               @click="showAnnouncements()"
             >
-              <q-badge                                
+              <q-badge
                 color="red"
                 floating
                 transparent
@@ -56,38 +57,20 @@
 
             <q-icon
               color="blue"
-              name="logout"              
-              class="cursor-pointer q-ml-md q-mt-xs"
+              name="logout"
+              class="cursor-pointer q-mx-sm"
               @click="logout()"
             >
               <q-tooltip class="bg-indigo">Logout</q-tooltip>
             </q-icon>
-            <q-space/>
-            <q-btn
-              color="secondary"
-              label="Donate"
-              push
-              dense
-              class="q-mt-xs"
-              size="small"
-              @click="gotoDonate()"
-            />
           </div>
           <div class="row no-wrap">
             <q-select
-              v-model="selectedPortfolio"
+              v-model="store.selectedPortfolio"
               :options="store.portfolios"
               dense
               :disable="store.portfolios.length < 3"
               hint="Portfolio"
-            ></q-select>
-            <q-select
-              class="q-ml-sm"
-              v-model="selectedCurrency"
-              :options="currenciesOptions"
-              dense
-              disable
-              hint="Currency"
             ></q-select>
             <q-space />
             <q-input
@@ -295,8 +278,14 @@
       <q-card-section
         style="font-size: 10px"
         class="q-ma-none q-pa-none text-center"
-        >Logo: @luca_pettini</q-card-section
-      >
+        >Logo: @luca_pettini<q-separator />Click
+        <a
+          href="https://www.tricider.com/admin/3PjMCoBDVkl/2FrVEZD6ZTh"
+          target="_blank"
+          >here</a
+        >
+        to suggest or upvote a feature request
+      </q-card-section>
       <q-inner-loading :showing="savingSettings">
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
@@ -346,14 +335,9 @@ export default defineComponent({
       dataToSearch: ref<string>(''),
       searchListOptions: ref<{ ticker: string; name: string }[]>([]),
       showSearchResultsMenu: ref<boolean>(false),
-      selectedPortfolio: ref<string>(''),
       showNoTransactionsDialog: ref<boolean>(false),
       defaultTax: ref<number>(0),
       savingSettings: ref<boolean>(false),
-      selectedCurrency: ref<string>('USD'),
-      currenciesOptions: ref<CurrencyCodeEnum[]>(
-        Object.values(CurrencyCodeEnum)
-      ),
       dateFormatOptions,
       searchTimer,
     };
@@ -489,7 +473,9 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       if (ticker === 'Nothing found') return;
-      this.router.push({ path: `/ticker/${this.selectedPortfolio}/${ticker}` });
+      this.router.push({
+        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+      });
       this.dataToSearch = '';
     },
     setFocusOnSearch() {
@@ -618,7 +604,7 @@ export default defineComponent({
                 else
                   importSharePrice =
                     Math.round((importPrice / importShares) * 10000) / 10000;
-                importDate = `${theLine[3]}T00:00:00.000Z`;
+                importDate = `${theLine[3]}`;
                 importPortfolio = theLine[4].trim();
                 importCurrency = 'USD';
                 if (theLine.length > 6) importCurrency = theLine[6].trim();
@@ -702,9 +688,8 @@ export default defineComponent({
             this.userName = responses[0].data;
             this.store.portfolios = responses[1].data;
             if (responses[1].data.length === 2) {
-              this.selectedPortfolio = responses[1].data[1];
-            } else this.selectedPortfolio = responses[1].data[0];
-            this.store.selectedPortfolio = this.selectedPortfolio;
+              this.store.selectedPortfolio = responses[1].data[1];
+            } else this.store.selectedPortfolio = responses[1].data[0];
             this.showNoTransactionsDialog = this.store.portfolios.length === 0;
             this.store.settings = responses[2].data;
             this.store.announcements = responses[3].data;
@@ -727,11 +712,6 @@ export default defineComponent({
   },
   beforeUnmount() {
     bus.off('transactionChange', this.runOnLoginSuccess);
-  },
-  watch: {
-    selectedPortfolio(newVal) {
-      this.store.selectedPortfolio = newVal;
-    },
   },
 });
 </script>

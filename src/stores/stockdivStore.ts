@@ -9,7 +9,6 @@ export const stockdivStore = defineStore('stockdiv', {
     settings: {
       dateFormat: 'YYYY-MM-DD',
       defaultTax: 0,
-      portfolios: [],
     },
     dividendAlerts: [] as IDividendAlert[],
     announcements: [] as { theDate: string; theMessage: string }[],
@@ -30,9 +29,6 @@ export const stockdivStore = defineStore('stockdiv', {
     },
     getDefaultTax(state) {
       return state.settings.defaultTax;
-    },
-    getPortfoliosSettings(state) {
-      return state.settings.portfolios;
     },
     getDividendAlerts(state) {
       return state.dividendAlerts;
