@@ -160,7 +160,7 @@
         won't be deleted
         <div class="row">
           <q-file
-            style="max-width: 300px"
+            style="width: 300px; max-width:300px"
             v-model="csvToImport"
             label="Select a csv file"
             accept=".csv"
@@ -468,7 +468,7 @@ export default defineComponent({
     logout() {
       this.store.portfolios = [];
       this.store.token = '';
-      this.router.push({ path: '/login' });
+      this.router.push({ path: '/' });
     },
     gotoTickerPage(ticker: string) {
       if (ticker === 'Nothing found') return;
@@ -712,7 +712,7 @@ export default defineComponent({
             this.store.settings = responses[2].data;
             this.store.announcements = responses[3].data;
 
-            if (this.router.currentRoute.value.fullPath.includes('login'))
+            if (this.router.currentRoute.value.fullPath === '/')
               this.router.push({ path: '/overview' });
             else bus.emit('changesInTransactions');
           })
