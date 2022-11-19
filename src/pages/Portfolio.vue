@@ -82,9 +82,9 @@
         </div>
         
         <div class="row no-wrap justify-center">
-          <div class="col-6 text-right"><b>Ex:</b> {{ item.lastExDay }}</div>
+          <div class="col-6 text-right"><b>Ex:</b> {{ filters.formatToDate(item.lastExDay) }}</div>
           <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left"><b>Pay:</b> {{ item.lastPayday }}</div>
+          <div class="col-6 text-left"><b>Pay:</b> {{ filters.formatToDate(item.lastPayday) }}</div>
         </div>
         
         <div class="row no-wrap justify-center">

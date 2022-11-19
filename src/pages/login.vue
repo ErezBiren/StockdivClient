@@ -204,7 +204,7 @@ export default defineComponent({
               }, 500);
             } else {
               this.store.token = response.data.token;
-              bus.emit('transactionChange', {});
+              bus.emit('transactionChange');
             }
           } else {
             showNotification(

@@ -160,10 +160,10 @@
           <tbody>
             <tr v-for="item in dividendData" v-bind:key="item.exDay">
               <td>
-                {{ item.exDay.substring(0, 10) }}
+                {{ filters.formatToDate(item.exDay.substring(0, 10)) }}
               </td>
               <td>
-                {{ item.payDay.substring(0, 10) }}
+                {{ filters.formatToDate(item.payDay.substring(0, 10)) }}
               </td>
               <td>
                 {{ filters.formatToCurrency(item.amount) }}
@@ -1062,7 +1062,7 @@ export default defineComponent({
     async getPriceForTransaction() {
       this.serverProcessing = true;
       this.newTransactionSharePrice = await this.getTickerPrice(
-        this.ticker,        
+        this.ticker,
         this.newTransactionWhen
       );
       this.sharePriceChange();
@@ -1164,7 +1164,7 @@ export default defineComponent({
           } else {
             this.addPurchaseDialogShow = false;
             showNotification('The transaction was updated successfully');
-            bus.emit('transactionChange', {});
+            bus.emit('transactionChange');
           }
         })
         .catch((err) => {
@@ -1223,7 +1223,7 @@ export default defineComponent({
             this.tickerLogo = responses[1].data;
             this.tickerCurrency = responses[2].data;
             this.tickerPrice = await this.getTickerPrice(
-              this.ticker,              
+              this.ticker,
               date.formatDate(new Date(), 'YYYY-MM-DD')
             );
             this.tickerAveragePrice = responses[3].data;
@@ -1381,6 +1381,13 @@ export default defineComponent({
         .then(
           axios.spread((...responses) => {
             this.timelineItems = responses[0].data;
+            if (this.store.settings.dateFormat !== 'YYYY-MM-DD') {
+              this.timelineItems.forEach(
+                (element: { title: string; content: string }) => {
+                  element.title = filters.formatToDate(element.title);
+                }
+              );
+            }
           })
         )
         .catch((err: AxiosError) => {

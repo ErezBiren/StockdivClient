@@ -1,7 +1,9 @@
 import { AxiosError, AxiosResponse } from 'axios';
-import { EventBus, Notify } from 'quasar';
+import { date, EventBus, Notify } from 'quasar';
+import { stockdivStore } from '../stores/stockdivStore';
 
 export const bus = new EventBus();
+const store = stockdivStore();
 
 export const showNotification = (what: string) => {
   Notify.create({
@@ -55,6 +57,9 @@ export const filters = {
   },
   formatToPercentage(value: number): string {
     return `${value.toFixed(2)}%`;
+  },
+  formatToDate(value: string): string {
+    return date.formatDate(value, store.settings.dateFormat);
   },
 };
 

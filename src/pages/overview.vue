@@ -1173,7 +1173,8 @@ export default defineComponent({
               this.performanceChart.updateOptions({
                 xaxis: {
                   categories: responses[0].data.sp500.map(
-                    (item: IPriceAndDate) => item.valueDate
+                    (item: IPriceAndDate) =>
+                      filters.formatToDate(item.valueDate)
                   ),
                 },
               });
@@ -1207,6 +1208,13 @@ export default defineComponent({
         .then(
           axios.spread((...responses) => {
             this.timelineItems = responses[0].data;
+            if (this.store.settings.dateFormat != 'YYYY-MM-DD') {
+              this.timelineItems.forEach(
+                (element: { title: string; content: string }) => {
+                  element.title = filters.formatToDate(element.title);
+                }
+              );
+            }
           })
         )
         .catch((err: AxiosError) => {

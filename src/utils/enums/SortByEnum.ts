@@ -3,4 +3,5 @@ export enum SortByEnum {
   INCOME = 'income',
   PROFITLOSS = 'profitloss',
   DAILYCHANGE = 'dailychange',
+  YEARS = 'years',
 }

@@ -83,8 +83,7 @@
               v-model="dataToSearch"
               @keyup="triggerSearch"
               ><q-tooltip
-                >Enter at least 3 characters of a ticker/company to see
-                available tickers</q-tooltip
+                >Enter 3 chars minimum to see available tickers</q-tooltip
               >
               <q-menu
                 fit
@@ -473,9 +472,28 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       if (ticker === 'Nothing found') return;
-      this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
-      });
+      if (this.router.currentRoute.value.fullPath.includes('screener')) {
+        this.loginLoading = true;
+        api
+          .patch(`screener/ticker/${ticker}`)
+          .then((response) => {
+            if (response.data.error) {
+              showNotification(response.data.error);
+            } else {
+              bus.emit('reloadScreener');
+            }
+          })
+          .catch((err) => {
+            showAPIError(err);
+          })
+          .finally(() => {
+            this.loginLoading = false;
+          });
+      } else {
+        this.router.push({
+          path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+        });
+      }
       this.dataToSearch = '';
     },
     setFocusOnSearch() {
@@ -635,7 +653,7 @@ export default defineComponent({
           } else {
             this.importInProcess = false;
             showNotification('Transactions were successfully imported');
-            bus.emit('transactionChange', {});
+            bus.emit('transactionChange');
           }
         })
         .catch((err) => {
@@ -709,9 +727,11 @@ export default defineComponent({
   },
   mounted() {
     bus.on('transactionChange', this.runOnLoginSuccess);
+    bus.on('searchTickerFocus', this.setFocusOnSearch);
   },
   beforeUnmount() {
     bus.off('transactionChange', this.runOnLoginSuccess);
+    bus.off('searchTickerFocus', this.setFocusOnSearch);
   },
 });
 </script>
