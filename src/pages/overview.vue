@@ -90,19 +90,22 @@
             />
           </div>
         </div>
-        <div class="row justify-center no-wrap">
+        <div class="row justify-center">
           <apexchart
             type="donut"
+            height="200"
             :options="yearChartOptions"
             :series="yearlyChartSeries"
           ></apexchart>
           <apexchart
             type="donut"
+            height="200"
             :options="monthChartOptions"
             :series="monthlyChartSeries"
           ></apexchart>
           <apexchart
             type="donut"
+            height="200"
             :options="weekChartOptions"
             :series="weeklyChartSeries"
           ></apexchart>

@@ -18,7 +18,7 @@
               style="height: 16px; max-width: 16px"
             />
             <div @click="gotoTickerPage(item.ticker)">
-              {{ item.ticker }}: {{ item.name }} ({{ item.sector }})
+              {{ item.ticker }}: {{ item.name.substring(0,30) }} ({{ item.sector }})
             </div>
             <q-icon
               class="q-ml-md q-mt-sm cursor-pointer"

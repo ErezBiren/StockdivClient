@@ -108,7 +108,7 @@
                   >
                     <q-item-section>
                       <q-item-label>{{ item.ticker }}</q-item-label>
-                      <q-item-label caption>{{ item.name }}</q-item-label>
+                      <q-item-label caption>{{ item.name.substring(0,30) }}</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-list>
@@ -152,15 +152,13 @@
           />
         </div>
         ticker, quantity, total price, date (yyyy-mm-dd), portfolio,
-        commissions, currency<br />
-        * Header row is not needed<br />* Commissions and currency are
-        optional<br />* A Preferred ticker format is, i.e. HMLP-PA<br />*
-        Negative quantity represents a sell transaction<br />* You can import
-        later from the settings window<br />* Current transactions, if exist,
+        commissions, currency<br />* Commissions and currency are
+        optional<br />*
+        Negative quantity represents a sell transaction<br />* Current transactions, if exist,
         won't be deleted
         <div class="row">
           <q-file
-            style="width: 300px; max-width:300px"
+            style="width: 300px; max-width: 300px"
             v-model="csvToImport"
             label="Select a csv file"
             accept=".csv"
@@ -201,7 +199,9 @@
         <div class="q-mt-sm">Settings</div>
         <q-space />
         <div class="text-subtitle2">3.0.1</div></q-card-section
-      >
+      ><div class="text-center q-mx-sm" style="font-size: 12px">Click
+        <a href="https://poll.ly/pAQ1KeZI5F2FFnNqpFFF" target="_blank">here</a>
+        to suggest or upvote a feature request</div>
       <q-separator />
       <q-card-section class="row no-wrap">
         <q-input
@@ -276,14 +276,8 @@
       <q-separator />
       <q-card-section
         style="font-size: 10px"
-        class="q-ma-none q-pa-none text-center"
-        >Logo: @luca_pettini<q-separator />Click
-        <a
-          href="https://www.tricider.com/admin/3PjMCoBDVkl/2FrVEZD6ZTh"
-          target="_blank"
-          >here</a
-        >
-        to suggest or upvote a feature request
+        class="q-ma-none q-pa-none text-center text-subtitle2"
+        >Logo: @luca_pettini<q-separator />
       </q-card-section>
       <q-inner-loading :showing="savingSettings">
         <q-spinner-hourglass size="50px" color="primary" />
@@ -535,6 +529,7 @@ export default defineComponent({
         if (content[line].trim() === '') continue;
         if (content[line].split(',').length < 5) {
           this.importInProcess = false;
+          this.csvToImport = null;
           showNotification(`Entry ${content[line]} is missing data`);
           return [];
         }
@@ -562,9 +557,11 @@ export default defineComponent({
         .then((response) => {
           if (response.data.error) {
             this.importInProcess = false;
+            this.csvToImport = null;
             showNotification(response.data.error);
           } else if (response.data.length > 0) {
             this.importInProcess = false;
+            this.csvToImport = null;
             showNotification(
               'The following tickers were not found: ' + response.data
             );
@@ -600,6 +597,7 @@ export default defineComponent({
             }
             if (err !== '') {
               this.importInProcess = false;
+              this.csvToImport = null;
               showNotification(err);
             } else {
               let theLine: string[];
@@ -641,12 +639,13 @@ export default defineComponent({
         })
         .catch((err) => {
           this.importInProcess = false;
+          this.csvToImport = null;
           showAPIError(err);
         });
     },
     importTransactions(transactions: ITransactionData[]) {
       api
-        .post('transaction', transactions)
+        .post('transaction', { transactions })
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
@@ -658,6 +657,7 @@ export default defineComponent({
         })
         .catch((err) => {
           this.importInProcess = false;
+          this.csvToImport = null;
           showAPIError(err);
         });
     },

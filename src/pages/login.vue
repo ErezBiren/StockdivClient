@@ -50,22 +50,13 @@
             </template>
           </q-input>
 
-          <div class="row">
-            <q-toggle
-              v-model="newUser"
-              color="primary"
-              keep-color
-              label="New User"
-              @click="focusRePassword()"
-            />
-            <q-toggle
-              v-model="rememberMe"
-              color="primary"
-              keep-color
-              disabled="true"
-              label="Remember me"
-            />
-          </div>
+          <q-toggle
+            v-model="newUser"
+            color="primary"
+            keep-color
+            label="New User"
+            @click="focusRePassword()"
+          />
           <q-input
             v-model="confirmationCode"
             type="text"

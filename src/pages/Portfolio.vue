@@ -7,15 +7,14 @@
     >
       <q-card-section>
         <div
-          class="row no-wrap cursor-pointer justify-center"
+          class="cursor-pointer justify-center"
           @click="gotoTickerPage(item.ticker)"
         >
           <q-img
             class="q-mx-sm"
             :src="item.logoUrl"
             style="height: 16px; max-width: 16px"
-          />{{ item.shares }} shares of {{ item.name }} ({{ item.ticker }} :
-          {{ item.sector }})
+          /><b>{{ item.ticker }}</b>: {{ item.sector }}<br/>{{ item.shares.toFixed(2) }} shares of {{ item.name.substring(0,30) }}
         </div>
         
         <div class="row no-wrap justify-center">
