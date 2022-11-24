@@ -98,7 +98,7 @@
       </q-card-section>
     </q-card>
     <q-page-sticky position="top">
-      <div class="row no-wrap q-pa-sm bg-white shadow-8">
+      <div class="row q-pa-sm bg-white shadow-8">
         Sort by
         <q-radio
           checked-icon="task_alt"

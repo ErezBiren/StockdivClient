@@ -87,6 +87,7 @@
               >
               <q-menu
                 fit
+                ref="searchTickerMenu"
                 v-if="showSearchResultsMenu"
                 v-model="showSearchResultsMenu"
                 anchor="bottom left"
@@ -108,7 +109,9 @@
                   >
                     <q-item-section>
                       <q-item-label>{{ item.ticker }}</q-item-label>
-                      <q-item-label caption>{{ item.name.substring(0,30) }}</q-item-label>
+                      <q-item-label caption>{{
+                        item.name.substring(0, 30)
+                      }}</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-list>
@@ -152,13 +155,12 @@
           />
         </div>
         ticker, quantity, total price, date (yyyy-mm-dd), portfolio,
-        commissions, currency<br />* Commissions and currency are
-        optional<br />*
-        Negative quantity represents a sell transaction<br />* Current transactions, if exist,
-        won't be deleted
+        commissions, currency<br />* Commissions and currency are optional<br />*
+        Negative quantity represents a sell transaction<br />* Current
+        transactions, if exist, won't be deleted
         <div class="row">
           <q-file
-            style="width: 300px; max-width: 300px"
+            style="width: 200px; max-width: 200px"
             v-model="csvToImport"
             label="Select a csv file"
             accept=".csv"
@@ -177,8 +179,10 @@
       </q-card-section>
       <q-separator />
       <q-card-actions align="right">
-        <q-btn flat @click="addManualTransaction()"
-          >Add transaction manually (See above search field)</q-btn
+        <q-btn @click="addManualTransaction()" label="Add transaction manually">
+          <q-tooltip class="bg-indigo">
+            See above search field to find your ticker
+          </q-tooltip></q-btn
         >
       </q-card-actions>
       <q-inner-loading :showing="importInProcess">
@@ -199,9 +203,12 @@
         <div class="q-mt-sm">Settings</div>
         <q-space />
         <div class="text-subtitle2">3.0.1</div></q-card-section
-      ><div class="text-center q-mx-sm" style="font-size: 12px">Click
+      >
+      <div class="text-center q-mx-sm" style="font-size: 12px">
+        Click
         <a href="https://poll.ly/pAQ1KeZI5F2FFnNqpFFF" target="_blank">here</a>
-        to suggest or upvote a feature request</div>
+        to suggest or upvote a feature request
+      </div>
       <q-separator />
       <q-card-section class="row no-wrap">
         <q-input
@@ -291,7 +298,7 @@ import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { api } from 'src/boot/axios';
 import { bus, isNumber, showAPIError, showNotification } from 'src/utils/utils';
-import { date, QInput } from 'quasar';
+import { date, QInput, QMenu } from 'quasar';
 import { CurrencyCodeEnum } from 'src/utils/enums/CurrencyCodeEnum';
 import { ITransactionData } from 'src/utils/interfaces/ITransactionData';
 import { useRouter } from 'vue-router';
@@ -325,6 +332,7 @@ export default defineComponent({
       isSharePrice: ref<boolean>(false),
       dateFormat: ref<string>('YYYY-MM-DD'),
       searchTickerInput: ref<QInput>(),
+      searchTickerMenu: ref<QMenu>(),
       dataToSearch: ref<string>(''),
       searchListOptions: ref<{ ticker: string; name: string }[]>([]),
       showSearchResultsMenu: ref<boolean>(false),
@@ -466,6 +474,7 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       if (ticker === 'Nothing found') return;
+      if (this.searchTickerMenu) this.searchTickerMenu.hide();
       if (this.router.currentRoute.value.fullPath.includes('screener')) {
         this.loginLoading = true;
         api

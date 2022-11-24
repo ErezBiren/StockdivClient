@@ -6,7 +6,7 @@
         v-for="(item, i) in store.dividendAlerts"
         v-bind:key="i"
       >
-        <q-card-section>
+        <q-card-section class="cursor-pointer" @click="gotoTickerPage(item.ticker)">
           <b
             ><q-img
               class="q-ma-sm"
@@ -36,13 +36,16 @@
 import { defineComponent } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
+import { useRouter } from 'vue-router';
 export default defineComponent({
   name: 'DividendAlerts',
   setup() {
     const store = stockdivStore();
+    const router = useRouter();
     return {
       store,
       filters,
+      router,
     };
   },
   methods: {
@@ -51,6 +54,11 @@ export default defineComponent({
     },
     getArrow(percent: number): string {
       return percent < 0 ? 'trending_down' : 'trending_up';
+    },
+    gotoTickerPage(ticker: string) {
+      this.router.push({
+        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+      });
     },
   },
 });

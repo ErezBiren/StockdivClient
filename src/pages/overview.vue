@@ -271,7 +271,7 @@ export default defineComponent({
             return filters.formatToCurrency(val);
           },
           style: {
-            fontSize: '12px',
+            fontSize: '1em',
             colors: ['#304758'],
           },
         },
@@ -291,10 +291,6 @@ export default defineComponent({
                     : filters.formatToPercentage(
                         (dividendsSoFar.value / portfolioInvested.value) * 100
                       );
-                },
-                style: {
-                  fontSize: '13px',
-                  fontWeight: 900,
                 },
               },
             },
@@ -350,7 +346,6 @@ export default defineComponent({
           },
           offsetY: -20,
           style: {
-            fontSize: '12px',
             colors: ['#304758'],
           },
         },
@@ -427,7 +422,6 @@ export default defineComponent({
           },
           offsetY: -20,
           style: {
-            fontSize: '12px',
             colors: ['#304758'],
           },
         },
@@ -860,7 +854,6 @@ export default defineComponent({
           },
           offsetY: -20,
           style: {
-            fontSize: '12px',
             colors: ['#304758'],
           },
         },
@@ -942,8 +935,7 @@ export default defineComponent({
             return filters.formatToCurrency(val);
           },
           offsetY: -20,
-          style: {
-            fontSize: '12px',
+          style: {            
             colors: ['#304758'],
           },
         },
@@ -1365,9 +1357,9 @@ export default defineComponent({
   padding: 2em 0 !important;
 }
 .timelineFont {
-  font-size: 14px !important;
+  font-size: 0.85em !important;
 }
 .timelineTitleFont {
-  font-size: 16px !important;
+  font-size: 1em !important;
 }
 </style>
