@@ -1413,10 +1413,10 @@ export default defineComponent({
           : this.tickerPortfolio;
     else this.newTransactionPortfolio = this.store.portfolios[0];
     this.runOnLoad();
-    bus.on('changesInTransactions', this.runOnLoad);
+    bus.on('updateTickerPage', this.runOnLoad);
   },
   unmounted() {
-    bus.off('changesInTransactions', this.runOnLoad);
+    bus.off('updateTickerPage', this.runOnLoad);
   },
   computed: {
     getTickerDataTooltip(): string {

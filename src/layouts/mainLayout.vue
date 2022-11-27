@@ -138,9 +138,8 @@
     position="bottom"
     ><q-card class="bg-info">
       <q-card-section>
-        In order to experience the so many features of StockDiv, please either
-        import your current portfolio from a csv file or add a new transaction
-        manually.</q-card-section
+        Import your portfolio from a csv file or search for a ticker to add a
+        transaction manually</q-card-section
       >
       <q-separator />
       <q-card-section>
@@ -156,8 +155,7 @@
         </div>
         ticker, quantity, total price, date (yyyy-mm-dd), portfolio,
         commissions, currency<br />* Commissions and currency are optional<br />*
-        Negative quantity represents a sell transaction<br />* Current
-        transactions, if exist, won't be deleted
+        Negative quantity represents a sell transaction
         <div class="row">
           <q-file
             style="width: 200px; max-width: 200px"
@@ -561,6 +559,7 @@ export default defineComponent({
         showNotification('No tickers to import');
         return;
       }
+      showNotification('Checking for invalid tickers');
       api
         .post('ticker/exist', tickersList)
         .then((response) => {
@@ -627,8 +626,9 @@ export default defineComponent({
                 if (this.isSharePrice)
                   importSharePrice = Math.abs(parseFloat(theLine[2]));
                 else
-                  importSharePrice =
-                    Math.round((importPrice / importShares) * 10000) / 10000;
+                  importSharePrice = Math.abs(
+                    Math.round((importPrice / importShares) * 10000) / 10000
+                  );
                 importDate = `${theLine[3]}`;
                 importPortfolio = theLine[4].trim();
                 importCurrency = 'USD';
@@ -642,6 +642,7 @@ export default defineComponent({
                   currency: importCurrency,
                 });
               }
+              showNotification('Importing transactions, please wait...');
               this.importTransactions(transactions);
             }
           }
@@ -720,10 +721,10 @@ export default defineComponent({
             this.showNoTransactionsDialog = this.store.portfolios.length === 0;
             this.store.settings = responses[2].data;
             this.store.announcements = responses[3].data;
-
+            if (this.showNoTransactionsDialog) return;
             if (this.router.currentRoute.value.fullPath === '/')
               this.router.push({ path: '/overview' });
-            else bus.emit('changesInTransactions');
+            else bus.emit('updateTickerPage');
           })
         )
         .catch((err: AxiosError) => {

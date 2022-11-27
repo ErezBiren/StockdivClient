@@ -2886,10 +2886,10 @@
   "resolved" "https://registry.npmjs.org/eslint-config-prettier/-/eslint-config-prettier-8.5.0.tgz"
   "version" "8.5.0"
 
-"eslint-plugin-vue@^9.7.0":
-  "integrity" "sha512-DrOO3WZCZEwcLsnd3ohFwqCoipGRSTKTBTnLwdhqAbYZtzWl0o7D+D8ZhlmiZvABKTEl8AFsqH1GHGdybyoQmw=="
-  "resolved" "https://registry.npmjs.org/eslint-plugin-vue/-/eslint-plugin-vue-9.7.0.tgz"
-  "version" "9.7.0"
+"eslint-plugin-vue@^9.8.0":
+  "integrity" "sha512-E/AXwcTzunyzM83C2QqDHxepMzvI2y6x+mmeYHbVDQlKFqmKYvRrhaVixEeeG27uI44p9oKDFiyCRw4XxgtfHA=="
+  "resolved" "https://registry.npmjs.org/eslint-plugin-vue/-/eslint-plugin-vue-9.8.0.tgz"
+  "version" "9.8.0"
   dependencies:
     "eslint-utils" "^3.0.0"
     "natural-compare" "^1.4.0"

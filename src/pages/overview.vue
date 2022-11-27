@@ -935,7 +935,7 @@ export default defineComponent({
             return filters.formatToCurrency(val);
           },
           offsetY: -20,
-          style: {            
+          style: {
             colors: ['#304758'],
           },
         },
@@ -1348,7 +1348,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    if (this.store.portfolios.length > 0) this.runWhenHasTransactions();
+    this.runWhenHasTransactions();
   },
 });
 </script>
