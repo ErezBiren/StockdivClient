@@ -609,7 +609,7 @@ export default defineComponent({
           height: 350,
           type: 'line',
           toolbar: {
-            show: false,
+            show: true,
           },
           animations: {
             enabled: false,

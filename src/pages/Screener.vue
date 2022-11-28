@@ -305,11 +305,11 @@ export default defineComponent({
       api
         .get('screener/cccDividends')
         .then((response) => {
-          if (response.data.error) {
+          clearTimeout(notification);
+          if (response.data.error) {          
             this.screenerLoading = false;
             showNotification(response.data.error);
-          } else {
-            clearTimeout(notification);
+          } else {            
             this.getScreener();
           }
         })

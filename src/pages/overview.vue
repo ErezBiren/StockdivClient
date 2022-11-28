@@ -495,7 +495,16 @@ export default defineComponent({
             opacity: 0.2,
           },
           toolbar: {
-            show: false,
+            show: true,
+            tools: {
+              download: true,
+              selection: false,
+              zoom: false,
+              zoomin: false,
+              zoomout: false,
+              pan: false,
+              reset: false,
+            }
           },
         },
         colors: ['#77B6EA', '#a1ea77'],
@@ -547,6 +556,11 @@ export default defineComponent({
       diversificationChartOptions: ref({
         tooltip: {
           enabled: false,
+        },
+        chart: {
+          toolbar: {
+            show: true,
+          },
         },
         title: {
           show: true,

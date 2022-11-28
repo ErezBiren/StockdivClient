@@ -654,9 +654,13 @@ export default defineComponent({
         });
     },
     importTransactions(transactions: ITransactionData[]) {
+      const notification = setTimeout(() => {
+        showNotification('You have many transactions, it might take a bit longer than expected...');
+      }, 10000);
       api
         .post('transaction', { transactions })
         .then((response) => {
+          clearTimeout(notification);
           if (response.data.error) {
             showNotification(response.data.error);
           } else {
