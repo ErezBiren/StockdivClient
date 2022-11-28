@@ -64,7 +64,7 @@
           <q-icon
             color="blue"
             name="event_note"
-            class="cursor-pointer q-my-xs"
+            class="cursor-pointer q-my-xs q-mx-sm"
             @click="gotoYearlyPaymentMatrix()"
           >
             <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
@@ -1130,6 +1130,7 @@ export default defineComponent({
             this.averageIncrease10y = responses[0].data.averageIncrease10y;
             this.averageIncrease5y = responses[0].data.averageIncrease5y;
             let incomeLastYear: number = responses[1].data;
+            this.projectionChartSeries[0].data = [];
             for (let i = 0; i < 12; i++) {
               this.projectionChartSeries[0].data.push(
                 incomeLastYear *

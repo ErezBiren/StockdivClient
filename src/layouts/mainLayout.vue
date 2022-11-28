@@ -17,6 +17,7 @@
             <q-icon
               color="blue"
               name="settings"
+              v-if="store.portfolios.length > 0"
               class="cursor-pointer q-my-xs q-mx-sm"
               @click="openSettings()"
             >
@@ -26,6 +27,7 @@
             <q-icon
               color="blue"
               name="home"
+              v-if="store.portfolios.length > 0"
               class="cursor-pointer q-my-xs q-mx-sm"
               @click="gotoOverview()"
             >
@@ -41,7 +43,7 @@
               size="sm"
               style="margin-top: -5px"
               class="cursor-pointer q-my-xs q-mx-sm"
-              v-if="store.announcements.length > 0"
+              v-if="store.announcements.length > 0 && store.portfolios.length > 0"
               @click="showAnnouncements()"
             >
               <q-badge

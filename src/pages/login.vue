@@ -1,6 +1,6 @@
 <template>
   <q-page class="row items-center justify-evenly">
-    <div class="column items-center">
+    <div class="column items-center" v-if="store.token === ''">
       <q-img src="logo.png" />
 
       <q-card class="shadow-8 bg-light-blue-1">

@@ -1275,6 +1275,7 @@ export default defineComponent({
         .then(
           axios.spread(async (...responses) => {
             const averageIncrease: number = responses[0].data.averageIncrease5y;
+            this.yearsProjectionSeries[0].data = [];
             this.yearsProjectionSeries[0].data.push(
               responses[0].data.dividends1YearBack
             );
