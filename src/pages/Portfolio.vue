@@ -14,9 +14,11 @@
             class="q-mx-sm"
             :src="item.logoUrl"
             style="height: 16px; max-width: 16px"
-          /><b>{{ item.ticker }}</b>: {{ item.sector }}<br/>{{ item.shares.toFixed(2) }} shares of {{ item.name.substring(0,30) }}
+          /><b>{{ item.ticker }}</b
+          >: {{ item.sector }}<br />{{ item.shares.toFixed(2) }} shares of
+          {{ item.name.substring(0, 30) }}
         </div>
-        
+
         <div class="row no-wrap justify-center">
           <div :class="getMarketValueColor(item.profitLoss)">
             {{ filters.formatToCurrency(item.marketValue) }}
@@ -32,11 +34,11 @@
             />{{ filters.formatToPercentage(item.dailyChangePercent) }})
           </div>
         </div>
-        
+
         <div class="text-h6">
           Income: {{ filters.formatToCurrency(item.income) }}
         </div>
-        
+
         <div class="row no-wrap justify-center">
           <div class="col-6 text-right">
             <b>Average price:</b>
@@ -48,7 +50,7 @@
             {{ filters.formatToCurrency(item.sharePrice) }}
           </div>
         </div>
-        
+
         <div class="row no-wrap justify-center">
           <div class="col-6 text-right">
             <b>Yield:</b> {{ filters.formatToPercentage(item.dividendYield) }}
@@ -58,7 +60,7 @@
             <b>YOC:</b> {{ filters.formatToPercentage(item.yoc) }}
           </div>
         </div>
-        
+
         <div class="row no-wrap justify-center">
           <div class="col-6 text-right">
             <b>Frequency:</b>
@@ -69,7 +71,7 @@
             <b>Tax:</b> {{ filters.formatToPercentage(item.tax) }}
           </div>
         </div>
-        
+
         <div class="row no-wrap justify-center">
           <div class="col-6 text-right">
             <b>Annualized:</b> {{ filters.formatToPercentage(item.annualized) }}
@@ -79,13 +81,17 @@
             <b>Portion:</b> {{ filters.formatToPercentage(item.portion) }}
           </div>
         </div>
-        
+
         <div class="row no-wrap justify-center">
-          <div class="col-6 text-right"><b>Ex:</b> {{ filters.formatToDate(item.lastExDay) }}</div>
+          <div class="col-6 text-right">
+            <b>Ex:</b> {{ filters.formatToDate(item.lastExDay) }}
+          </div>
           <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left"><b>Pay:</b> {{ filters.formatToDate(item.lastPayday) }}</div>
+          <div class="col-6 text-left">
+            <b>Pay:</b> {{ filters.formatToDate(item.lastPayday) }}
+          </div>
         </div>
-        
+
         <div class="row no-wrap justify-center">
           <div class="col-6 text-right">
             <b>Amount:</b> {{ filters.formatToCurrency(item.dividendAmount) }}
@@ -153,7 +159,8 @@
           label="Descending"
           class="q-mx-md"
           @click="sortAssets()"
-        /><q-separator vertical /><div class="q-mx-md">{{ portfolioAssets.length }} assets</div>
+        /><q-separator vertical />
+        <div class="q-mx-md">{{ portfolioAssets.length }} assets</div>
       </div>
     </q-page-sticky>
     <q-inner-loading :showing="portfolioLoading">
@@ -166,7 +173,7 @@
 import { api } from 'src/boot/axios';
 import { IPortfolioAsset } from 'src/utils/interfaces/IPortfolioAsset';
 import { defineComponent, ref } from 'vue';
-import { filters, showAPIError, showNotification } from '../utils/utils';
+import { filters, showAPIError, showNotification, bus } from '../utils/utils';
 import { stockdivStore } from '../stores/stockdivStore';
 import { SortByEnum } from '../utils/enums/SortByEnum';
 import { SortDirectionEnum } from 'src/utils/enums/SortDirectionEnum';
@@ -195,6 +202,7 @@ export default defineComponent({
     },
     getPortfolio() {
       this.portfolioLoading = true;
+      this.portfolioAssets = [];
       api
         .get(`portfolio/${this.store.selectedPortfolio}/assets`)
         .then((response) => {
@@ -271,6 +279,10 @@ export default defineComponent({
   },
   mounted() {
     this.getPortfolio();
+    bus.on('changedPortfolio', this.getPortfolio);
+  },
+  unmounted() {
+    bus.off('changedPortfolio', this.getPortfolio);
   },
 });
 </script>

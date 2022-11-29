@@ -10,7 +10,9 @@
         >
           <thead>
             <tr>
-              <th class="bg-green-2"><b>Ticker</b></th>
+              <th class="bg-green-2 cursor-pointer" @click="sortData(SortByEnum.TICKER)">
+                <b>Ticker</b>
+              </th>
               <th
                 class="bg-green-2 cursor-pointer"
                 @click="gotoMonth('January')"
@@ -68,7 +70,9 @@
               >
                 Dec
               </th>
-              <th class="bg-green-2"><b>Total</b></th>
+              <th class="bg-green-2 cursor-pointer" @click="sortData(SortByEnum.INCOME)">
+                <b>Total</b>
+              </th>
               <th class="bg-green-2">Jan</th>
               <th class="bg-green-2">Feb</th>
             </tr>
@@ -196,11 +200,12 @@
 <script lang="ts">
 import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
-import { showAPIError } from 'src/utils/utils';
+import { showAPIError, bus } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
 import { useRouter } from 'vue-router';
+import { SortByEnum } from 'src/utils/enums/SortByEnum';
 export default defineComponent({
   name: 'YearlyPaymentMatrix',
 
@@ -208,32 +213,32 @@ export default defineComponent({
     const store = stockdivStore();
     const router = useRouter();
     return {
+      SortByEnum,
       router,
       yearlyPaymentLoading: ref<boolean>(false),
       store,
       filters,
-      matrixData:
-        ref<
-          [
-            string,
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            [number, number],
-            string
-          ][]
-        >(),
+      matrixData: ref<
+        [
+          string,
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          [number, number],
+          string
+        ][]
+      >([]),
       matrixDataFooter: ref<
         [
           string,
@@ -257,6 +262,22 @@ export default defineComponent({
     };
   },
   methods: {
+    sortData(sortBy: SortByEnum) {
+      switch (sortBy) {
+        case SortByEnum.TICKER: {
+          this.matrixData.sort((a, b) =>
+            a[0] > b[0] ? 1 : b[0] > a[0] ? -1 : 0
+          );
+          break;
+        }
+        case SortByEnum.INCOME: {
+          this.matrixData.sort((a, b) =>
+            a[13][0] > b[13][0] ? -1 : b[13][0] > a[13][0] ? 1 : 0
+          );
+          break;
+        }
+      }
+    },
     gotoMonth(month: string) {
       this.router.push({ path: `/monthlyDividendsView/${month}` });
     },
@@ -283,6 +304,7 @@ export default defineComponent({
         .then(
           axios.spread(async (...responses) => {
             this.matrixData = responses[0].data.matrixData;
+            this.sortData(SortByEnum.TICKER);
             this.matrixDataFooter = responses[0].data.matrixFooter;
           })
         )
@@ -296,6 +318,10 @@ export default defineComponent({
   },
   mounted() {
     this.loadMatrixData();
+    bus.on('changedPortfolio', this.loadMatrixData);
+  },
+  unmounted() {
+    bus.off('changedPortfolio', this.loadMatrixData);
   },
 });
 </script>

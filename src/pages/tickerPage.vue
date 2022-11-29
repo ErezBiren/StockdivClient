@@ -8,7 +8,7 @@
           class="q-mr-sm"
         />
         <strong>{{ ticker }}</strong
-        >: {{ tickerName.substring(0,30) }}
+        >: {{ tickerName.substring(0, 30) }}
         <q-icon
           class="q-ml-md cursor-pointer"
           name="edit_notes"
@@ -1403,6 +1403,11 @@ export default defineComponent({
       this.runAllDividendsRelatedAPIs();
       this.runTimelineRelatedAPIs();
     },
+    changePortfolio() {
+      this.router.push({
+        path: `/ticker/${this.store.selectedPortfolio}/${this.ticker}`,
+      });
+    },
   },
   mounted() {
     this.ticker = useRoute().params.ticker as string;
@@ -1415,9 +1420,11 @@ export default defineComponent({
     else this.newTransactionPortfolio = this.store.portfolios[0];
     this.runOnLoad();
     bus.on('updateTickerPage', this.runOnLoad);
+    bus.on('changedPortfolio', this.changePortfolio);
   },
   unmounted() {
     bus.off('updateTickerPage', this.runOnLoad);
+    bus.off('changedPortfolio', this.changePortfolio);
   },
   computed: {
     getTickerDataTooltip(): string {

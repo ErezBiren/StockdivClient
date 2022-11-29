@@ -43,7 +43,9 @@
               size="sm"
               style="margin-top: -5px"
               class="cursor-pointer q-my-xs q-mx-sm"
-              v-if="store.announcements.length > 0 && store.portfolios.length > 0"
+              v-if="
+                store.announcements.length > 0 && store.portfolios.length > 0
+              "
               @click="showAnnouncements()"
             >
               <q-badge
@@ -73,6 +75,7 @@
               dense
               :disable="store.portfolios.length < 3"
               hint="Portfolio"
+              @update:model-value="changePortfolio"
             ></q-select>
             <q-space />
             <q-input
@@ -635,6 +638,11 @@ export default defineComponent({
                 importPortfolio = theLine[4].trim();
                 importCurrency = 'USD';
                 if (theLine.length > 6) importCurrency = theLine[6].trim();
+                if (importCurrency === 'GBP' || importCurrency === 'ILS') {
+                  importSharePrice *= 100;
+                  if (importCurrency === 'GBP') importCurrency = 'GBX';
+                  else importCurrency = 'ILA';
+                }
                 transactions.push({
                   ticker: importTicker,
                   portfolio: importPortfolio,
@@ -657,7 +665,9 @@ export default defineComponent({
     },
     importTransactions(transactions: ITransactionData[]) {
       const notification = setTimeout(() => {
-        showNotification('You have many transactions, it might take a bit longer than expected...');
+        showNotification(
+          'You have many transactions, it might take a bit longer than expected...'
+        );
       }, 10000);
       api
         .post('transaction', { transactions })
@@ -739,6 +749,9 @@ export default defineComponent({
         .finally(() => {
           this.loginLoading = false;
         });
+    },
+    changePortfolio() {
+      bus.emit('changedPortfolio');
     },
   },
   mounted() {

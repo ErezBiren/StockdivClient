@@ -42,7 +42,7 @@
 import { defineComponent, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { QCalendarMonth } from '@quasar/quasar-ui-qcalendar';
-import { filters } from '../utils/utils';
+import { filters, bus } from '../utils/utils';
 import '@quasar/quasar-ui-qcalendar/src/QCalendarMonth.sass';
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass';
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass';
@@ -110,6 +110,10 @@ export default defineComponent({
       new Date(Date.parse(useRoute().params.month + ' 1, 2022')).getMonth() + 1;
     this.selectedDate = `${new Date().getFullYear()}-${this.month}-01`;
     this.getMonthEvents();
+    bus.on('changedPortfolio', this.getMonthEvents);
+  },
+  unmounted() {
+    bus.off('changedPortfolio', this.getMonthEvents);
   },
   computed: {
     eventsMap() {

@@ -233,7 +233,7 @@ import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
 import { IDiversification } from 'src/utils/interfaces/IDiversification';
 import { IPriceAndDate } from 'src/utils/interfaces/IPriceAndDate';
-import { showAPIError } from 'src/utils/utils';
+import { showAPIError, bus } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
@@ -504,7 +504,7 @@ export default defineComponent({
               zoomout: false,
               pan: false,
               reset: false,
-            }
+            },
           },
         },
         colors: ['#77B6EA', '#a1ea77'],
@@ -1364,6 +1364,10 @@ export default defineComponent({
   },
   mounted() {
     this.runWhenHasTransactions();
+    bus.on('changedPortfolio', this.runWhenHasTransactions);
+  },
+  unmounted() {
+    bus.off('changedPortfolio', this.runWhenHasTransactions);
   },
 });
 </script>
