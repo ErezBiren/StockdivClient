@@ -319,9 +319,11 @@ export default defineComponent({
   mounted() {
     this.loadMatrixData();
     bus.on('changedPortfolio', this.loadMatrixData);
+    bus.on('changedSettings', this.loadMatrixData);
   },
   unmounted() {
     bus.off('changedPortfolio', this.loadMatrixData);
+    bus.off('changedSettings', this.loadMatrixData);
   },
 });
 </script>

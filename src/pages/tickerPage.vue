@@ -1421,10 +1421,12 @@ export default defineComponent({
     this.runOnLoad();
     bus.on('updateTickerPage', this.runOnLoad);
     bus.on('changedPortfolio', this.changePortfolio);
+    bus.on('changedSettings', this.runOnLoad);
   },
   unmounted() {
     bus.off('updateTickerPage', this.runOnLoad);
     bus.off('changedPortfolio', this.changePortfolio);
+    bus.off('changedSettings', this.runOnLoad);
   },
   computed: {
     getTickerDataTooltip(): string {

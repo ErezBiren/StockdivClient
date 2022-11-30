@@ -263,6 +263,24 @@
         >
       </q-card-section>
       <q-separator />
+      <q-card-section class="row no-wrap">
+        <q-input
+          v-model.number="decimalDigits"
+          type="number"
+          dense
+          hint="Decimal Digits"
+          :rules="[(val) => (val && val >= 0) || 'Decimal Digits is missing']"
+        />
+        <q-icon
+          name="edit"
+          size="sm"
+          @click="saveSettings('decimalDigits', decimalDigits)"
+          class="cursor-pointer q-mt-sm"
+          ><q-tooltip class="bg-indigo">Save decimal digits</q-tooltip></q-icon
+        >
+      </q-card-section>
+      <q-separator />
+
       <q-card-actions align="right">
         <q-icon
           name="password"
@@ -341,6 +359,7 @@ export default defineComponent({
       showSearchResultsMenu: ref<boolean>(false),
       showNoTransactionsDialog: ref<boolean>(false),
       defaultTax: ref<number>(0),
+      decimalDigits: ref<number>(2),
       savingSettings: ref<boolean>(false),
       dateFormatOptions,
       searchTimer,
@@ -440,6 +459,7 @@ export default defineComponent({
     },
     saveSettings(field: string, value: string | number) {
       if (!this.defaultTax) this.defaultTax = 0;
+      if (!this.decimalDigits) this.decimalDigits = 2;
       this.savingSettings = true;
       api
         .patch('user/settings', {
@@ -453,6 +473,8 @@ export default defineComponent({
             this.showSettingsPopup = false;
             this.store.settings.defaultTax = this.defaultTax;
             this.store.settings.dateFormat = this.dateFormat;
+            this.store.settings.decimalDigits = this.decimalDigits;
+            bus.emit('changedSettings');
             showNotification('Settings were successfully saved');
           }
         })
@@ -668,7 +690,7 @@ export default defineComponent({
         showNotification(
           'You have many transactions, it might take a bit longer than expected...'
         );
-      }, 10000);
+      }, 20000);
       api
         .post('transaction', { transactions })
         .then((response) => {
@@ -700,6 +722,7 @@ export default defineComponent({
       this.userNameEdit = this.userName;
       this.dateFormat = this.store.settings.dateFormat;
       this.defaultTax = this.store.settings.defaultTax;
+      this.decimalDigits = this.store.settings.decimalDigits;
       this.showSettingsPopup = true;
     },
     setUserName() {

@@ -129,7 +129,7 @@
           val="profitloss"
           v-model="sortBy"
           dense
-          label="%Profit/Loss"
+          label="%PL"
           class="q-mx-md"
           @click="sortAssets()"
         />
@@ -280,9 +280,11 @@ export default defineComponent({
   mounted() {
     this.getPortfolio();
     bus.on('changedPortfolio', this.getPortfolio);
+    bus.on('changedSettings', this.getPortfolio);
   },
   unmounted() {
     bus.off('changedPortfolio', this.getPortfolio);
+    bus.off('changedSettings', this.getPortfolio);
   },
 });
 </script>

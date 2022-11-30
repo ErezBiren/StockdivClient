@@ -69,6 +69,14 @@
           >
             <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
           </q-icon>
+          <q-icon
+            color="blue"
+            name="event"
+            class="cursor-pointer q-my-xs q-mx-sm"
+            @click="gotoDividendsThisMonth()"
+          >
+            <q-tooltip class="bg-indigo">Current month</q-tooltip>
+          </q-icon>
         </div>
         <div class="text-h6 q-mt-sm">
           {{ nextDividendInfo }}
@@ -1015,6 +1023,13 @@ export default defineComponent({
     gotoYearlyPaymentMatrix() {
       this.router.push({ path: '/yearlyPaymentMatrix' });
     },
+    gotoDividendsThisMonth() {
+      this.router.push({
+        path: `/monthlyDividendsView/${new Date().toLocaleString('default', {
+          month: 'long',
+        })}`,
+      });
+    },
     showDividendAlerts() {
       this.router.push({ path: '/dividendAlerts' });
     },
@@ -1365,9 +1380,11 @@ export default defineComponent({
   mounted() {
     this.runWhenHasTransactions();
     bus.on('changedPortfolio', this.runWhenHasTransactions);
+    bus.on('changedSettings', this.runWhenHasTransactions);
   },
   unmounted() {
     bus.off('changedPortfolio', this.runWhenHasTransactions);
+    bus.off('changedSettings', this.runWhenHasTransactions);
   },
 });
 </script>

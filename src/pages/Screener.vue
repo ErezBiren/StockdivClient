@@ -372,10 +372,12 @@ export default defineComponent({
   },
   mounted() {
     bus.on('reloadScreener', this.getScreener);
+    bus.on('changedSettings', this.getScreener);
     this.getScreener();
   },
   beforeUnmount() {
     bus.off('reloadScreener', this.getScreener);
+    bus.off('changedSettings', this.getScreener);
   },
 });
 </script>

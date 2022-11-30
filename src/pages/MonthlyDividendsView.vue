@@ -111,9 +111,11 @@ export default defineComponent({
     this.selectedDate = `${new Date().getFullYear()}-${this.month}-01`;
     this.getMonthEvents();
     bus.on('changedPortfolio', this.getMonthEvents);
+    bus.on('changedSettings', this.getMonthEvents);
   },
   unmounted() {
     bus.off('changedPortfolio', this.getMonthEvents);
+    bus.off('changedSettings', this.getMonthEvents);
   },
   computed: {
     eventsMap() {
