@@ -504,44 +504,35 @@ export default defineComponent({
           },
           toolbar: {
             show: true,
-            tools: {
-              download: true,
-              selection: false,
-              zoom: false,
-              zoomin: false,
-              zoomout: false,
-              pan: false,
-              reset: false,
-            },
+          },
+          animations: {
+            enabled: true,
+          },
+          zoom: {
+            enabled: false,
           },
         },
-        colors: ['#77B6EA', '#a1ea77'],
+        colors: ['#77B6EA', '#A1EA77'],
         dataLabels: {
           enabled: false,
-          formatter: function (val: number) {
-            return filters.formatToPercentage(val);
-          },
         },
         stroke: {
           curve: 'smooth',
         },
         title: {
-          show: true,
           align: 'center',
           text: `${store.selectedPortfolio} vs S&P500`,
-        },
-        grid: {
-          borderColor: '#e7e7e7',
-          row: {
-            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-            opacity: 0.5,
-          },
         },
         markers: {
           size: 1,
         },
         xaxis: {
+          type: 'datetime',
           categories: [],
+        },
+        tooltip: {          
+          shared: true,
+          intersect: false
         },
         yaxis: {
           title: {
@@ -1199,7 +1190,7 @@ export default defineComponent({
                 xaxis: {
                   categories: responses[0].data.sp500.map(
                     (item: IPriceAndDate) =>
-                      filters.formatToDate(item.valueDate)
+                      item.valueDate
                   ),
                 },
               });

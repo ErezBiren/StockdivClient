@@ -623,7 +623,8 @@ export default defineComponent({
         },
         colors: ['#ADD8E6', '#00FF00'],
         tooltip: {
-          shared: false,
+          shared: true,
+          intersect: false,
         },
         stroke: {
           width: [2, 5],
