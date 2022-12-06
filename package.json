@@ -1,8 +1,8 @@
 {
   "name": "stockdivclient",
-  "version": "3.0.1",
+  "version": "3.0.5",
   "description": "Your portfolio. Your income.",
-  "productName": "StockDiv",
+  "productName": "StockDiv: Your portfolio. Your income.",
   "author": "Amos",
   "private": true,
   "scripts": {
@@ -11,10 +11,10 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.15.6",
+    "@quasar/extras": "^1.15.7",
     "@quasar/quasar-ui-qcalendar": "^4.0.0-beta.15",
     "apexcharts": "^3.36.3",
-    "axios": "^1.2.0",
+    "axios": "^1.2.1",
     "core-js": "^3.26.1",
     "pinia": "^2.0.27",
     "quasar": "^2.10.2",
@@ -25,9 +25,9 @@
   },
   "devDependencies": {
     "@quasar/app-webpack": "^3.6.2",
-    "@typescript-eslint/eslint-plugin": "^5.45.0",
-    "@typescript-eslint/parser": "^5.45.0",
-    "eslint": "^8.28.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.1",
+    "@typescript-eslint/parser": "^5.45.1",
+    "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-vue": "^9.8.0",
     "prettier": "^2.8.0"

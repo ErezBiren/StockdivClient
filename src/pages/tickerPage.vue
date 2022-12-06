@@ -459,7 +459,7 @@
             type="number"
             step="0.0001"
             hint="Quantity"
-            :rules="[(val) => (val && val > 0) || 'Quantity is missing']"
+            :rules="[(val) => (val && val !== 0) || 'Quantity is missing']"
           >
             <q-tooltip class="bg-indigo">
               Negative quantity represents a sell transaction
@@ -504,7 +504,7 @@
             step="0.0001"
             hint="Total price"
             :prefix="getCurrencySymbol"
-            :rules="[(val) => (val && val > 0) || 'Total is missing']"
+            :rules="[(val) => (val && val !== 0) || 'Total is missing']"
           />
         </q-card-section>
         <q-separator />

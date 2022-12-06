@@ -96,6 +96,9 @@
               :src="getTickerIcon(index)"
               style="height: 32px; max-width: 32px"
             />
+            <q-tooltip
+              >Next Dividend: {{ filters.formatToCurrency(nextDivTickersAmount[index]) }}</q-tooltip
+            >
           </div>
         </div>
         <div class="row justify-center">
@@ -476,6 +479,7 @@ export default defineComponent({
       nextDividendInfo: ref<string>(''),
       nextDivTickers: ref<string[]>([]),
       nextDivTickersLogos: ref<string[]>([]),
+      nextDivTickersAmount: ref<number[]>([]),
       marketValueLoading: ref<boolean>(false),
       PerformanceLoading: ref<boolean>(false),
       dividendsInfoLoading: ref<boolean>(false),
@@ -530,9 +534,9 @@ export default defineComponent({
           type: 'datetime',
           categories: [],
         },
-        tooltip: {          
+        tooltip: {
           shared: true,
-          intersect: false
+          intersect: false,
         },
         yaxis: {
           title: {
@@ -1105,6 +1109,7 @@ export default defineComponent({
               )}`;
             this.nextDivTickers = responses[1].data.tickers;
             this.nextDivTickersLogos = responses[1].data.logos;
+            this.nextDivTickersAmount = responses[1].data.amounts;
 
             this.yearlyChartSeries = responses[2].data.yearDividend;
             this.monthlyChartSeries = responses[2].data.monthDividend;
@@ -1189,8 +1194,7 @@ export default defineComponent({
               this.performanceChart.updateOptions({
                 xaxis: {
                   categories: responses[0].data.sp500.map(
-                    (item: IPriceAndDate) =>
-                      item.valueDate
+                    (item: IPriceAndDate) => item.valueDate
                   ),
                 },
               });
