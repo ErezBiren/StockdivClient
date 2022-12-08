@@ -84,7 +84,7 @@
                   ><q-img
                     class="q-ma-sm"
                     :src="item[16]"
-                    style="height: 16px; max-width: 16px"
+                    style="height: 16px; width: 16px"
                   />{{ item[0] }}</b
                 >
               </td>

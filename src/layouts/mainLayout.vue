@@ -528,6 +528,7 @@ export default defineComponent({
       if (this.searchTickerInput) this.searchTickerInput.focus();
     },
     getSearchOptions() {
+      if (this.dataToSearch === '') return;
       this.showSearchResultsMenu = false;
       api
         .get(`ticker/search?searchText=${this.dataToSearch}`)
@@ -598,7 +599,7 @@ export default defineComponent({
             this.importInProcess = false;
             this.csvToImport = null;
             showNotification(
-              'The following tickers were not found: ' + response.data
+              `Tickers ${response.data} are obsolete. Please remove them from the file and import it again`
             );
           } else {
             let err = '';

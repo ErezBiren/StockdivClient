@@ -91,10 +91,10 @@
               text-color="white"
             >
               {{ ticker }}
-            </q-chip>
+            </q-chip><br/>
             <q-img
               :src="getTickerIcon(index)"
-              style="height: 32px; max-width: 32px"
+              style="height: 32px; width: 32px"
             />
             <q-tooltip
               >Next Dividend: {{ filters.formatToCurrency(nextDivTickersAmount[index]) }}</q-tooltip

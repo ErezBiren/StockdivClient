@@ -213,5 +213,12 @@ export default defineComponent({
         });
     },
   },
+  mounted() {
+    api.get('https://stockdiv.com:8445').catch(() => {
+      showNotification(
+        'The server is down for maintenance, please try again later'
+      );
+    });
+  },
 });
 </script>

@@ -4,7 +4,7 @@
       <q-card-section class="q-pa-sm"
         ><q-img
           :src="tickerLogo"
-          style="height: 32px; max-width: 32px"
+          style="height: 32px; width: 32px"
           class="q-mr-sm"
         />
         <strong>{{ ticker }}</strong

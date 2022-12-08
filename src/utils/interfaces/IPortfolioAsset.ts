@@ -22,7 +22,7 @@ export interface IPortfolioAsset {
   dailyChangePercent: number;
   tax: number;
   lastExDay: string;
-  lastPayday: string;
+  lastPayDay: string;
   dividendAmount: number;
   lastTotalDividend: number;
   portion: number;

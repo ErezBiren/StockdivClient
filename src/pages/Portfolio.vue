@@ -1,166 +1,270 @@
 <template>
   <q-page style="padding-top: 50px">
-    <q-card
-      class="text-center shadow-8 bg-light-blue-1 q-ma-md q-mb-lg"
-      v-for="(item, i) in portfolioAssets"
-      v-bind:key="i"
-    >
-      <q-card-section>
-        <div
-          class="cursor-pointer justify-center"
-          @click="gotoTickerPage(item.ticker)"
-        >
-          <q-img
-            class="q-mx-sm"
-            :src="item.logoUrl"
-            style="height: 16px; max-width: 16px"
-          /><b>{{ item.ticker }}</b
-          >: {{ item.sector }}<br />{{ item.shares.toFixed(2) }} shares of
-          {{ item.name.substring(0, 30) }}
-        </div>
+    <div v-if="viewMode === ViewModeEnum.TABLE" class="column">
+      <q-table
+        dense
+        bordered
+        class="absolute-full scroll q-ma-md my-sticky-header-column-table shadow-8 bg-light-blue-1"
+        :title="store.selectedPortfolio"
+        :rows="portfolioAssets"
+        :columns="portfolioColumns"
+        row-key="ticker"
+        :pagination="initialPagination"
+        :hide-bottom="true"
+      >
+        <template v-slot:body="props">
+          <q-tr :props="props">
+            <q-td
+              class="cursor-pointer row no-wrap"
+              key="ticker"
+              :props="props"
+              @click="gotoTickerPage(props.row.ticker)"
+            >
+              <q-img
+                class="q-mx-sm"
+                :src="props.row.logoUrl"
+                style="height: 16px; width: 16px"
+              />
+              <div :class="soldAllColor(props.row.shares)">
+                {{ props.row.ticker }}
+              </div>
+            </q-td>
+            <q-td key="name" :props="props" :class="soldAllColor(props.row.shares)"> {{ props.row.name }}</q-td>
+            <q-td key="sector" :props="props" :class="soldAllColor(props.row.shares)"> {{ props.row.sector }}</q-td>
+            <q-td key="shares" :props="props" :class="soldAllColor(props.row.shares)"> {{ props.row.shares }}</q-td>
+            <q-td key="averagePrice" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.averagePrice) }}</q-td
+            >
+            <q-td key="sharePrice" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.sharePrice) }}</q-td
+            >
+            <q-td key="invested" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.invested) }}</q-td
+            >
+            <q-td key="marketValue" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.marketValue) }}</q-td
+            >
+            <q-td key="income" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.income) }}</q-td
+            >
+            <q-td key="yield" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToPercentage(props.row.dividendYield) }}</q-td
+            >
+            <q-td key="yoc" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToPercentage(props.row.yoc) }}</q-td
+            >
+            <q-td key="frequency" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ props.row.dividendFrequency }}</q-td
+            >
+            <q-td key="profitLoss" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.profitLoss) }}</q-td
+            >
+            <q-td
+              key="profitLossPercent"
+              :props="props"
+              :class="getUpDownColor(props.row.profitLossPercent)"
+            >
+              {{
+                filters.formatToPercentage(props.row.profitLossPercent)
+              }}</q-td
+            >
+            <q-td key="annualized" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToPercentage(props.row.annualized) }}</q-td
+            >
+            <q-td key="dailyChange" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ props.row.dailyChange }}</q-td
+            >
+            <q-td
+              key="dailyChangePercent"
+              :props="props"
+              :class="getUpDownColor(props.row.dailyChangePercent)"
+            >
+              {{
+                filters.formatToPercentage(props.row.dailyChangePercent)
+              }}</q-td
+            >
+            <q-td key="tax" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToPercentage(props.row.tax) }}</q-td
+            >
+            <q-td
+              key="lastExDay"
+              :props="props"
+              :class="getExPayColor(props.row.lastExDay)"
+            >
+              {{ filters.formatToDate(props.row.lastExDay) }}</q-td
+            >
+            <q-td
+              key="lastPayDay"
+              :props="props"
+              :class="getExPayColor(props.row.lastPayDay)"
+            >
+              {{ filters.formatToDate(props.row.lastPayDay) }}</q-td
+            >
+            <q-td key="dividendAmount" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.dividendAmount) }}</q-td
+            >
+            <q-td key="lastTotalDividend" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToCurrency(props.row.lastTotalDividend) }}</q-td
+            >
+            <q-td key="portion" :props="props" :class="soldAllColor(props.row.shares)">
+              {{ filters.formatToPercentage(props.row.portion) }}</q-td
+            >
+          </q-tr>
+        </template>
+      </q-table>
+    </div>
+    <div v-if="viewMode === ViewModeEnum.CARD">
+      <q-card
+        class="text-center shadow-8 bg-light-blue-1 q-ma-md q-mb-lg"
+        v-for="(item, i) in portfolioAssets"
+        v-bind:key="i"
+      >
+        <q-card-section>
+          <div
+            class="cursor-pointer justify-center"
+            @click="gotoTickerPage(item.ticker)"
+          >
+            <q-img
+              class="q-mx-sm"
+              :src="item.logoUrl"
+              style="height: 16px; width: 16px"
+            /><b>{{ item.ticker }}</b
+            >: {{ item.sector }}<br />{{ item.shares.toFixed(2) }} shares of
+            {{ item.name.substring(0, 30) }}
+          </div>
 
-        <div class="row no-wrap justify-center">
-          <div :class="getMarketValueColor(item.profitLoss)">
-            {{ filters.formatToCurrency(item.marketValue) }}
-            &nbsp;(<q-icon
-              class="q-mr-xs q-mt-xs"
-              :name="getArrow(item.profitLoss)"
-            />{{ filters.formatToPercentage(item.profitLossPercent) }})
+          <div class="row no-wrap justify-center">
+            <div
+              :class="getMarketValueColor(item.profitLoss)"
+              @click="sortAssets(SortByEnum.PROFITLOSS)"
+            >
+              {{ filters.formatToCurrency(item.marketValue) }}
+              &nbsp;(<q-icon
+                class="q-mr-xs q-mt-xs"
+                :name="getArrow(item.profitLoss)"
+              />{{ filters.formatToPercentage(item.profitLossPercent) }})
+            </div>
+            <div
+              :class="getDailyChangeColor(item.dailyChange)"
+              @click="sortAssets(SortByEnum.DAILYCHANGE)"
+            >
+              Daily: (<q-icon
+                class="q-mr-xs"
+                :name="getDailyArrow(item.dailyChange)"
+              />{{ filters.formatToPercentage(item.dailyChangePercent) }})
+            </div>
           </div>
-          <div :class="getDailyChangeColor(item.dailyChange)">
-            Daily: (<q-icon
-              class="q-mr-xs"
-              :name="getDailyArrow(item.dailyChange)"
-            />{{ filters.formatToPercentage(item.dailyChangePercent) }})
-          </div>
-        </div>
 
-        <div class="text-h6">
-          Income: {{ filters.formatToCurrency(item.income) }}
-        </div>
+          <div
+            class="text-h6 cursor-pointer"
+            @click="sortAssets(SortByEnum.INCOME)"
+          >
+            Income: {{ filters.formatToCurrency(item.income) }}
+          </div>
 
-        <div class="row no-wrap justify-center">
-          <div class="col-6 text-right">
-            <b>Average price:</b>
-            {{ filters.formatToCurrency(item.averagePrice) }}
+          <div class="row no-wrap justify-center">
+            <div class="col-6 text-right">
+              <b>Current price:</b>
+              {{ filters.formatToCurrency(item.sharePrice) }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div class="col-6 text-left">
+              <b>Average price:</b>
+              {{ filters.formatToCurrency(item.averagePrice) }}
+            </div>
           </div>
-          <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left">
-            <b>Current price:</b>
-            {{ filters.formatToCurrency(item.sharePrice) }}
-          </div>
-        </div>
 
-        <div class="row no-wrap justify-center">
-          <div class="col-6 text-right">
-            <b>Yield:</b> {{ filters.formatToPercentage(item.dividendYield) }}
+          <div class="row no-wrap justify-center">
+            <div
+              class="col-6 text-right cursor-pointer"
+              @click="sortAssets(SortByEnum.YIELD)"
+            >
+              <b>Yield:</b> {{ filters.formatToPercentage(item.dividendYield) }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortAssets(SortByEnum.YOC)"
+            >
+              <b>YOC:</b> {{ filters.formatToPercentage(item.yoc) }}
+            </div>
           </div>
-          <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left">
-            <b>YOC:</b> {{ filters.formatToPercentage(item.yoc) }}
-          </div>
-        </div>
 
-        <div class="row no-wrap justify-center">
-          <div class="col-6 text-right">
-            <b>Frequency:</b>
-            {{ item.dividendFrequency }}
+          <div class="row no-wrap justify-center">
+            <div class="col-6 text-right">
+              <b>Frequency:</b>
+              {{ item.dividendFrequency }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div class="col-6 text-left">
+              <b>Tax:</b> {{ filters.formatToPercentage(item.tax) }}
+            </div>
           </div>
-          <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left">
-            <b>Tax:</b> {{ filters.formatToPercentage(item.tax) }}
-          </div>
-        </div>
 
-        <div class="row no-wrap justify-center">
-          <div class="col-6 text-right">
-            <b>Annualized:</b> {{ filters.formatToPercentage(item.annualized) }}
+          <div class="row no-wrap justify-center">
+            <div class="col-6 text-right">
+              <b>Annualized:</b>
+              {{ filters.formatToPercentage(item.annualized) }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortAssets(SortByEnum.PORTION)"
+            >
+              <b>Portion:</b> {{ filters.formatToPercentage(item.portion) }}
+            </div>
           </div>
-          <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left">
-            <b>Portion:</b> {{ filters.formatToPercentage(item.portion) }}
-          </div>
-        </div>
 
-        <div class="row no-wrap justify-center">
-          <div class="col-6 text-right">
-            <b>Ex:</b> {{ filters.formatToDate(item.lastExDay) }}
+          <div class="row no-wrap justify-center">
+            <div
+              class="col-6 text-right cursor-pointer"
+              @click="sortAssets(SortByEnum.EX)"
+            >
+              <b>Ex:</b> {{ filters.formatToDate(item.lastExDay) }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortAssets(SortByEnum.PAY)"
+            >
+              <b>Pay:</b> {{ filters.formatToDate(item.lastPayDay) }}
+            </div>
           </div>
-          <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left">
-            <b>Pay:</b> {{ filters.formatToDate(item.lastPayday) }}
-          </div>
-        </div>
 
-        <div class="row no-wrap justify-center">
-          <div class="col-6 text-right">
-            <b>Amount:</b> {{ filters.formatToCurrency(item.dividendAmount) }}
+          <div class="row no-wrap justify-center">
+            <div class="col-6 text-right">
+              <b>Amount:</b> {{ filters.formatToCurrency(item.dividendAmount) }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortAssets(SortByEnum.DIVIDENDTOTAL)"
+            >
+              <b>Total:</b>
+              {{ filters.formatToCurrency(item.lastTotalDividend) }}
+            </div>
           </div>
-          <q-separator vertical class="q-mx-md" />
-          <div class="col-6 text-left">
-            <b>Total:</b> {{ filters.formatToCurrency(item.lastTotalDividend) }}
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
+        </q-card-section>
+      </q-card>
+    </div>
     <q-page-sticky position="top">
       <div class="row q-pa-sm bg-white shadow-8">
-        Sort by
-        <q-radio
-          checked-icon="task_alt"
-          val="ticker"
-          v-model="sortBy"
-          dense
-          label="Ticker"
-          class="q-mx-md"
-          @click="sortAssets()"
-        />
-        <q-radio
-          checked-icon="task_alt"
-          val="income"
-          v-model="sortBy"
-          dense
-          label="Income"
-          class="q-mx-md"
-          @click="sortAssets()"
-        />
-        <q-radio
-          checked-icon="task_alt"
-          val="profitloss"
-          v-model="sortBy"
-          dense
-          label="%PL"
-          class="q-mx-md"
-          @click="sortAssets()"
-        />
-        <q-radio
-          checked-icon="task_alt"
-          val="dailychange"
-          v-model="sortBy"
-          dense
-          label="%Daily change"
-          class="q-mx-md"
-          @click="sortAssets()"
-        /><q-separator vertical />
-        <q-radio
-          checked-icon="task_alt"
-          val="ascending"
-          v-model="sortDirection"
-          dense
-          label="Ascending"
-          class="q-mx-md"
-          @click="sortAssets()"
-        />
-        <q-radio
-          checked-icon="task_alt"
-          val="descending"
-          v-model="sortDirection"
-          dense
-          label="Descending"
-          class="q-mx-md"
-          @click="sortAssets()"
-        /><q-separator vertical />
         <div class="q-mx-md">{{ portfolioAssets.length }} assets</div>
+        <q-separator vertical /><q-icon
+          size="xs"
+          name="more_vert"
+          class="q-mt-xs cursor-pointer"
+        >
+          <q-menu fit anchor="bottom left" self="top left" ref="portfolioMenu">
+            <q-list bordered separator>
+              <q-item clickable v-ripple @click="switchView()">
+                <q-item-section>
+                  <q-item-label>Switch view</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-icon>
       </div>
     </q-page-sticky>
     <q-inner-loading :showing="portfolioLoading">
@@ -178,23 +282,268 @@ import { stockdivStore } from '../stores/stockdivStore';
 import { SortByEnum } from '../utils/enums/SortByEnum';
 import { SortDirectionEnum } from 'src/utils/enums/SortDirectionEnum';
 import { useRouter } from 'vue-router';
+import { ViewModeEnum } from 'src/utils/enums/ViewModeEnum';
+import { date, QMenu, QTableProps } from 'quasar';
 
 export default defineComponent({
   name: 'PortfolioPage',
   setup() {
     const router = useRouter();
     const store = stockdivStore();
+    const portfolioColumns: QTableProps['columns'] = [
+      {
+        name: 'ticker',
+        required: true,
+        label: 'Ticker',
+        align: 'left',
+        field: (row: IPortfolioAsset) => row.ticker,
+        format: (val: string) => `<q-img />${val}`,
+        sortable: true,
+      },
+      {
+        name: 'name',
+        required: true,
+        label: 'Name',
+        align: 'left',
+        field: (row: IPortfolioAsset) => row.name,
+        format: (val: string) => `${val}`,
+        sortable: true,
+      },
+      {
+        name: 'sector',
+        required: true,
+        label: 'Sector',
+        align: 'left',
+        field: (row: IPortfolioAsset) => row.sector,
+        format: (val: string) => `${val}`,
+        sortable: true,
+      },
+      {
+        name: 'shares',
+        required: true,
+        label: 'Shares',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.shares,
+        format: (val: number) => `${val}`,
+        sortable: true,
+      },
+      {
+        name: 'averagePrice',
+        required: true,
+        label: 'Average Price',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.averagePrice,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'sharePrice',
+        required: true,
+        label: 'Share Price',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.sharePrice,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'invested',
+        required: true,
+        label: 'Invested',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.invested,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'marketValue',
+        required: true,
+        label: 'Market Value',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.marketValue,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'income',
+        required: true,
+        label: 'Income',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.income,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'yield',
+        required: true,
+        label: 'Yield',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.dividendYield,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'yoc',
+        required: true,
+        label: 'YOC',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.yoc,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'frequency',
+        required: true,
+        label: 'Frequency',
+        align: 'left',
+        field: (row: IPortfolioAsset) => row.dividendFrequency,
+        format: (val: string) => `${val}`,
+        sortable: true,
+      },
+      {
+        name: 'profitLoss',
+        required: true,
+        label: 'PL',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.profitLoss,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'profitLossPercent',
+        required: true,
+        label: 'PL%',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.profitLossPercent,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'annualized',
+        required: true,
+        label: 'Annualized',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.annualized,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'dailyChange',
+        required: true,
+        label: 'Change',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.dailyChange,
+        format: (val: number) => `${val}`,
+        sortable: true,
+      },
+      {
+        name: 'dailyChangePercent',
+        required: true,
+        label: 'Change%',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.dailyChangePercent,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'tax',
+        required: true,
+        label: 'Tax',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.tax,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'lastExDay',
+        required: true,
+        label: 'Ex',
+        align: 'left',
+        field: (row: IPortfolioAsset) => row.lastExDay,
+        format: (val: string) => `${filters.formatToDate(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'lastPayDay',
+        required: true,
+        label: 'Pay',
+        align: 'left',
+        field: (row: IPortfolioAsset) => row.lastPayDay,
+        format: (val: string) => `${filters.formatToDate(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'dividendAmount',
+        required: true,
+        label: 'Dividend',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.dividendAmount,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'lastTotalDividend',
+        required: true,
+        label: 'Total',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.lastTotalDividend,
+        format: (val: number) => `${filters.formatToCurrency(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'portion',
+        required: true,
+        label: 'Portion%',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.portion,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+    ];
     return {
       filters,
       router,
       store,
+      SortByEnum,
+      portfolioMenu: ref<QMenu>(),
       portfolioLoading: ref<boolean>(false),
       portfolioAssets: ref<IPortfolioAsset[]>([]),
+      portfolioColumns,
       sortBy: ref<SortByEnum>(SortByEnum.TICKER),
-      sortDirection: ref<SortDirectionEnum>(SortDirectionEnum.ASC),
+      sortDirection: ref<SortDirectionEnum>(SortDirectionEnum.DESC),
+      viewMode: ref<ViewModeEnum>(ViewModeEnum.CARD),
+      ViewModeEnum,
+      initialPagination: {
+        sortBy: 'profitLossPercent',
+        descending: true,
+        page: 1,
+        rowsPerPage: 200,
+      },
     };
   },
   methods: {
+    switchView() {
+      if (this.portfolioMenu) this.portfolioMenu.hide();
+      this.viewMode =
+        this.viewMode === ViewModeEnum.CARD
+          ? ViewModeEnum.TABLE
+          : ViewModeEnum.CARD;
+      this.store.settings.portfolioViewMode = this.viewMode;
+      api
+        .patch('user/settings', {
+          field: 'portfolioViewMode',
+          value: this.viewMode,
+        })
+        .then((response) => {
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            showNotification('View mode was successfully saved');
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        });
+    },
     gotoTickerPage(ticker: string) {
       this.router.push({
         path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
@@ -210,7 +559,7 @@ export default defineComponent({
             showNotification(response.data.error);
           } else {
             this.portfolioAssets = response.data;
-            this.sortAssets();
+            this.sortAssets(SortByEnum.TICKER);
           }
         })
         .catch((err) => {
@@ -222,14 +571,20 @@ export default defineComponent({
     },
     getMarketValueColor(profitLoss: number): string {
       return profitLoss < 0
-        ? 'text-h6 text-red q-mt-sm row no-wrap justify-center'
-        : 'text-h6 text-green q-mt-sm row no-wrap justify-center';
+        ? 'text-h6 text-red q-mt-sm row no-wrap justify-center cursor-pointer'
+        : 'text-h6 text-green q-mt-sm row no-wrap justify-center cursor-pointer';
     },
     getArrow(profitLoss: number): string {
       return profitLoss < 0 ? 'trending_down' : 'trending_up';
     },
-    sortAssets() {
-      switch (this.sortBy) {
+    sortAssets(sortBy: SortByEnum) {
+      if (sortBy === this.sortBy) {
+        this.sortDirection =
+          this.sortDirection === SortDirectionEnum.ASC
+            ? SortDirectionEnum.DESC
+            : SortDirectionEnum.ASC;
+      } else this.sortBy = sortBy;
+      switch (sortBy) {
         case SortByEnum.TICKER: {
           this.portfolioAssets.sort(
             (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
@@ -266,6 +621,60 @@ export default defineComponent({
           );
           break;
         }
+        case SortByEnum.YIELD: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dividendYield - pa2.dividendYield
+                : pa2.dividendYield - pa1.dividendYield
+          );
+          break;
+        }
+        case SortByEnum.YOC: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.yoc - pa2.yoc
+                : pa2.yoc - pa1.yoc
+          );
+          break;
+        }
+        case SortByEnum.PORTION: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.portion - pa2.portion
+                : pa2.portion - pa1.portion
+          );
+          break;
+        }
+        case SortByEnum.DIVIDENDTOTAL: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.lastTotalDividend - pa2.lastTotalDividend
+                : pa2.lastTotalDividend - pa1.lastTotalDividend
+          );
+          break;
+        }
+        case SortByEnum.EX: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.lastExDay.localeCompare(pa2.lastExDay)
+                : pa2.lastExDay.localeCompare(pa1.lastExDay)
+          );
+          break;
+        }
+        case SortByEnum.PAY: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.lastPayDay.localeCompare(pa2.lastPayDay)
+                : pa2.lastPayDay.localeCompare(pa1.lastPayDay)
+          );
+          break;
+        }
       }
     },
     getDailyArrow(dailyChange: number): string {
@@ -273,11 +682,23 @@ export default defineComponent({
     },
     getDailyChangeColor(dailyChange: number): string {
       return dailyChange < 0
-        ? 'text-subtitle2 text-red q-mt-md q-mx-md'
-        : 'text-subtitle2 text-green q-mt-md q-mx-md';
+        ? 'text-subtitle2 text-red q-mt-md q-mx-md cursor-pointer'
+        : 'text-subtitle2 text-green q-mt-md q-mx-md cursor-pointer';
+    },
+    getUpDownColor(value: number): string {
+      return value < 0 ? 'bg-red-5' : 'bg-green';
+    },
+    getExPayColor(value: string): string {
+      return date.isSameDate(new Date(), new Date(value), 'month')
+        ? 'bg-purple-2'
+        : 'bg-light-blue-1';
+    },
+    soldAllColor(shares: number): string {
+      return shares === 0 ? 'text-grey-6' : 'text-black';
     },
   },
   mounted() {
+    this.viewMode = this.store.settings.portfolioViewMode || ViewModeEnum.CARD;
     this.getPortfolio();
     bus.on('changedPortfolio', this.getPortfolio);
     bus.on('changedSettings', this.getPortfolio);
@@ -288,3 +709,43 @@ export default defineComponent({
   },
 });
 </script>
+
+<style>
+.my-sticky-header-column-table {
+  /* height or max-height is important */
+  max-height: 1310px;
+}
+.my-sticky-header-column-table td:first-child {
+  /* bg color is important for td; just specify one */
+  background-color: #cfdef5 !important;
+}
+.my-sticky-header-column-table tr th {
+  position: sticky;
+  /* higher than z-index for td below */
+  z-index: 2;
+  /* bg color is important; just specify one */
+  background: #fff;
+}
+.my-sticky-header-column-table thead tr:last-child th {
+  /* height of all previous header rows */
+  top: 48px;
+  /* highest z-index */
+  z-index: 3;
+}
+.my-sticky-header-column-table thead tr:first-child th {
+  top: 0;
+  z-index: 1;
+}
+.my-sticky-header-column-table tr:first-child th:first-child {
+  /* highest z-index */
+  z-index: 3;
+}
+.my-sticky-header-column-table td:first-child {
+  z-index: 1;
+}
+.my-sticky-header-column-table td:first-child,
+.my-sticky-header-column-table th:first-child {
+  position: sticky;
+  left: 0;
+}
+</style>

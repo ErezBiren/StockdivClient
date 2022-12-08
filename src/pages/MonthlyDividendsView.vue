@@ -19,7 +19,7 @@
                   class="q-ma-xs cursor-pointer"
                   @click="gotoTickerPage(event.ticker)"
                   :src="event.logo"
-                  style="height: 16px; max-width: 16px"
+                  style="height: 16px; width: 16px"
                 />
                 {{ event.ticker }}
                 {{ event.eventType === EventTypeEnum.PAYDAY ? 'Pay:' : 'Ex:' }}

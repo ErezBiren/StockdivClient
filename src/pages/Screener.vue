@@ -15,10 +15,12 @@
             <q-img
               class="q-mx-sm q-mt-sm"
               :src="item.logoUrl"
-              style="height: 16px; max-width: 16px"
+              style="height: 16px; width: 16px"
             />
             <div @click="gotoTickerPage(item.ticker)">
-              {{ item.ticker }}: {{ item.name.substring(0,30) }} ({{ item.sector }})
+              {{ item.ticker }}: {{ item.name.substring(0, 30) }} ({{
+                item.sector
+              }})
             </div>
             <q-icon
               class="q-ml-md q-mt-sm cursor-pointer"
@@ -49,7 +51,10 @@
             class="row no-wrap justify-center"
             v-if="item.dividendYield != 0 || item.dividendAmount != 0"
           >
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right cursor-pointer"
+              @click="sortScreener(SortByEnum.YIELD)"
+            >
               <b>Yield:</b>
               {{ filters.formatToPercentage(item.dividendYield) }}
             </div>
@@ -69,7 +74,10 @@
               {{ item.frequency }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortScreener(SortByEnum.YEARS)"
+            >
               <b>Years increase:</b> {{ item.yearsIncrease }}
             </div>
           </div>
@@ -78,11 +86,17 @@
             class="row no-wrap justify-center"
             v-if="item.lastExDay != '' || item.lastPayDay != ''"
           >
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right cursor-pointer"
+              @click="sortScreener(SortByEnum.EX)"
+            >
               <b>Ex:</b> {{ filters.formatToDate(item.lastExDay) }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortScreener(SortByEnum.PAY)"
+            >
               <b>Pay:</b> {{ filters.formatToDate(item.lastPayDay) }}
             </div>
           </div>
@@ -171,44 +185,6 @@
     </q-virtual-scroll>
     <q-page-sticky position="top">
       <div class="row q-pa-sm bg-white shadow-8">
-        Sort by
-        <q-radio
-          checked-icon="task_alt"
-          val="ticker"
-          v-model="sortBy"
-          dense
-          label="Ticker"
-          class="q-mx-md"
-          @click="sortScreener()"
-        />
-        <q-radio
-          checked-icon="task_alt"
-          val="years"
-          v-model="sortBy"
-          dense
-          label="Years"
-          class="q-mx-md"
-          @click="sortScreener()"
-        />
-        <q-separator vertical />
-        <q-radio
-          checked-icon="task_alt"
-          val="ascending"
-          v-model="sortDirection"
-          dense
-          label="Ascending"
-          class="q-mx-md"
-          @click="sortScreener()"
-        />
-        <q-radio
-          checked-icon="task_alt"
-          val="descending"
-          v-model="sortDirection"
-          dense
-          label="Descending"
-          class="q-mx-md"
-          @click="sortScreener()"
-        /><q-separator vertical />
         <div class="q-mx-md">{{ screenerTickers.length }} tickers</div>
         <q-separator vertical /><q-icon
           size="xs"
@@ -258,10 +234,11 @@ export default defineComponent({
       filters,
       router,
       store,
+      SortByEnum,
       screenerLoading: ref<boolean>(false),
       screenerTickers: ref<IScreenerTicker[]>([]),
       sortBy: ref<SortByEnum>(SortByEnum.YEARS),
-      sortDirection: ref<SortDirectionEnum>(SortDirectionEnum.DESC),
+      sortDirection: ref<SortDirectionEnum>(SortDirectionEnum.ASC),
       screenerMenu: ref<QMenu>(),
     };
   },
@@ -306,10 +283,10 @@ export default defineComponent({
         .get('screener/cccDividends')
         .then((response) => {
           clearTimeout(notification);
-          if (response.data.error) {          
+          if (response.data.error) {
             this.screenerLoading = false;
             showNotification(response.data.error);
-          } else {            
+          } else {
             this.getScreener();
           }
         })
@@ -323,7 +300,14 @@ export default defineComponent({
         path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
       });
     },
-    sortScreener() {
+    sortScreener(sortBy: SortByEnum) {
+      if (sortBy === this.sortBy) {
+        this.sortDirection =
+          this.sortDirection === SortDirectionEnum.ASC
+            ? SortDirectionEnum.DESC
+            : SortDirectionEnum.ASC;
+      } else this.sortBy = sortBy;
+
       switch (this.sortBy) {
         case SortByEnum.TICKER: {
           this.screenerTickers.sort(
@@ -343,6 +327,33 @@ export default defineComponent({
           );
           break;
         }
+        case SortByEnum.YIELD: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dividendYield - pa2.dividendYield
+                : pa2.dividendYield - pa1.dividendYield
+          );
+          break;
+        }
+        case SortByEnum.EX: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.lastExDay.localeCompare(pa2.lastExDay)
+                : pa2.lastExDay.localeCompare(pa1.lastExDay)
+          );
+          break;
+        }
+        case SortByEnum.PAY: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.lastPayDay.localeCompare(pa2.lastPayDay)
+                : pa2.lastPayDay.localeCompare(pa1.lastPayDay)
+          );
+          break;
+        }
       }
     },
     getScreener() {
@@ -359,7 +370,7 @@ export default defineComponent({
               showNotification(
                 'Add tickers using the 3 dots menu/search ticker at the top'
               );
-            } else this.sortScreener();
+            } else this.sortScreener(SortByEnum.YEARS);
           }
         })
         .catch((err) => {

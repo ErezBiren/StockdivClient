@@ -11,7 +11,7 @@
             ><q-img
               class="q-ma-sm"
               :src="item.logo"
-              style="height: 16px; max-width: 16px"
+              style="height: 16px; width: 16px"
             />{{ item.ticker }}</b
           >
           <q-separator />

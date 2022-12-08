@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { ViewModeEnum } from 'src/utils/enums/ViewModeEnum';
 import { IDividendAlert } from 'src/utils/interfaces/IDividendAlert';
 
 export const stockdivStore = defineStore('stockdiv', {
@@ -10,6 +11,8 @@ export const stockdivStore = defineStore('stockdiv', {
       dateFormat: 'YYYY-MM-DD',
       defaultTax: 0,
       decimalDigits: 2,
+      portfolioViewMode: ViewModeEnum.CARD,
+      screenerViewMode: ViewModeEnum.CARD,
     },
     dividendAlerts: [] as IDividendAlert[],
     announcements: [] as { theDate: string; theMessage: string }[],
@@ -31,8 +34,14 @@ export const stockdivStore = defineStore('stockdiv', {
     getDefaultTax(state) {
       return state.settings.defaultTax;
     },
-    getDecimalDigist(state) {
+    getDecimalDigits(state) {
       return state.settings.decimalDigits;
+    },
+    getPortfolioViewMode(state) {
+      return state.settings.portfolioViewMode;
+    },
+    getScreenerViewMode(state) {
+      return state.settings.screenerViewMode;
     },
     getDividendAlerts(state) {
       return state.dividendAlerts;
