@@ -291,6 +291,7 @@ export default defineComponent({
           }
         })
         .catch((err) => {
+          clearTimeout(notification);
           this.screenerLoading = false;
           showAPIError(err);
         });
@@ -357,11 +358,18 @@ export default defineComponent({
       }
     },
     getScreener() {
+      const notification = setTimeout(() => {
+        showNotification(
+          'You have many transactions, it might take a bit longer than expected...'
+        );
+      }, 20000);
+
       this.screenerLoading = true;
       this.screenerTickers = [];
       api
         .get('screener')
         .then((response) => {
+          clearTimeout(notification);
           if (response.data.error) {
             showNotification(response.data.error);
           } else {
@@ -374,6 +382,7 @@ export default defineComponent({
           }
         })
         .catch((err) => {
+          clearTimeout(notification);
           showAPIError(err);
         })
         .finally(() => {

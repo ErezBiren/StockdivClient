@@ -429,7 +429,7 @@ export default defineComponent({
             .onOk((newPassword: string) => {
               this.savingSettings = true;
               api
-                .put('user/password', {
+                .patch('user/password', {
                   oldPassword: oldPassword,
                   newPassword: newPassword,
                 })
@@ -552,7 +552,7 @@ export default defineComponent({
       }
       this.searchTimer = window.setTimeout(() => {
         this.getSearchOptions();
-      }, 500);
+      }, 250);
     },
     triggerSearch() {
       this.searchListOptions = [];
@@ -706,6 +706,7 @@ export default defineComponent({
           }
         })
         .catch((err) => {
+          clearTimeout(notification);
           this.importInProcess = false;
           this.csvToImport = null;
           showAPIError(err);
@@ -730,7 +731,7 @@ export default defineComponent({
     setUserName() {
       if (this.userName === this.userNameEdit) return;
       api
-        .put('user/name', this.userNameEdit)
+        .patch('user/name', { name: this.userNameEdit })
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
