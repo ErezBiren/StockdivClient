@@ -950,38 +950,42 @@ export default defineComponent({
   },
   methods: {
     deleteTransaction() {
-      this.$q
-        .dialog({
-          title: 'Delete a transaction',
-          message: 'Are you sure?',
-          position: 'bottom',
-          cancel: true,
-        })
-        .onOk(() => {
-          this.serverProcessing = true;
-          this.editedTransaction = {
-            portfolio: this.tickerPortfolio,
-            ticker: this.ticker,
-            currency: this.tickerCurrency,
-            shares: this.newTransactionShares,
-            sharePrice: this.newTransactionSharePrice,
-            when: this.newTransactionWhen,
-          };
-          api
-            .delete('transaction', { data: this.editedTransaction })
-            .then(() => {
-              showNotification('Transaction was deleted successfully');
-              this.editedTransaction = undefined;
-              this.addPurchaseDialogShow = false;
-              this.runOnLoad();
-            })
-            .catch((error) => {
-              showAPIError(error);
-            })
-            .finally(() => {
-              this.serverProcessing = false;
-            });
-        });
+      if (this.store.selectedPortfolio === 'All Portfolios') {
+        showNotification("You can't delete a transaction from All Portfolios");
+      } else {
+        this.$q
+          .dialog({
+            title: 'Delete a transaction',
+            message: 'Are you sure?',
+            position: 'bottom',
+            cancel: true,
+          })
+          .onOk(() => {
+            this.serverProcessing = true;
+            this.editedTransaction = {
+              portfolio: this.tickerPortfolio,
+              ticker: this.ticker,
+              currency: this.tickerCurrency,
+              shares: this.newTransactionShares,
+              sharePrice: this.newTransactionSharePrice,
+              when: this.newTransactionWhen,
+            };
+            api
+              .delete('transaction', { data: this.editedTransaction })
+              .then(() => {
+                showNotification('Transaction was deleted successfully');
+                this.editedTransaction = undefined;
+                this.addPurchaseDialogShow = false;
+                this.runOnLoad();
+              })
+              .catch((error) => {
+                showAPIError(error);
+              })
+              .finally(() => {
+                this.serverProcessing = false;
+              });
+          });
+      }
     },
     editTransaction() {
       if (!this.timelineItem || !this.timelineItem.transaction) return;
@@ -1140,36 +1144,40 @@ export default defineComponent({
         });
     },
     submitNewTransaction() {
-      const transactions: ITransactionData[] = [];
-      transactions.push({
-        ticker: this.ticker,
-        portfolio: this.newTransactionPortfolio,
-        sharePrice: this.newTransactionSharePrice,
-        shares: this.newTransactionShares,
-        when: `${this.newTransactionWhen}`,
-        currency: this.tickerCurrency,
-      });
-      this.serverProcessing = true;
-      api
-        .post('transaction', {
-          transactions,
-          editedTransaction: this.editedTransaction,
-        })
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.addPurchaseDialogShow = false;
-            showNotification('The transaction was updated successfully');
-            bus.emit('transactionChange');
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        })
-        .finally(() => {
-          this.serverProcessing = false;
+      if (this.store.selectedPortfolio === 'All Portfolios') {
+        showNotification("You can't add/edit a transaction in All Portfolios");
+      } else {
+        const transactions: ITransactionData[] = [];
+        transactions.push({
+          ticker: this.ticker,
+          portfolio: this.newTransactionPortfolio,
+          sharePrice: this.newTransactionSharePrice,
+          shares: this.newTransactionShares,
+          when: `${this.newTransactionWhen}`,
+          currency: this.tickerCurrency,
         });
+        this.serverProcessing = true;
+        api
+          .post('transaction', {
+            transactions,
+            editedTransaction: this.editedTransaction,
+          })
+          .then((response) => {
+            if (response.data.error) {
+              showNotification(response.data.error);
+            } else {
+              this.addPurchaseDialogShow = false;
+              showNotification('The transaction was updated successfully');
+              bus.emit('transactionChange');
+            }
+          })
+          .catch((err) => {
+            showAPIError(err);
+          })
+          .finally(() => {
+            this.serverProcessing = false;
+          });
+      }
     },
     closePurchasePopup() {
       this.addPurchaseDialogShow = false;
