@@ -96,6 +96,7 @@
                 v-if="showSearchResultsMenu"
                 v-model="showSearchResultsMenu"
                 anchor="bottom left"
+                no-focus
                 self="top left"
                 @show="setFocusOnSearch()"
               >
@@ -545,13 +546,13 @@ export default defineComponent({
         });
     },
     searchTimeOut() {
-      if (this.searchTimer === -1) {
+      if (this.searchTimer !== -1) {
         clearTimeout(this.searchTimer);
         this.searchTimer = -1;
       }
       this.searchTimer = window.setTimeout(() => {
         this.getSearchOptions();
-      }, 200);
+      }, 500);
     },
     triggerSearch() {
       this.searchListOptions = [];

@@ -1144,7 +1144,7 @@ export default defineComponent({
         });
     },
     submitNewTransaction() {
-      if (this.store.selectedPortfolio === 'All Portfolios') {
+      if (this.editedTransaction && this.store.selectedPortfolio === 'All Portfolios') {
         showNotification("You can't add/edit a transaction in All Portfolios");
       } else {
         const transactions: ITransactionData[] = [];
