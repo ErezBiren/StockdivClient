@@ -205,7 +205,7 @@
         ><q-img :src="'logo.png'" class="logo" />
         <div class="q-mt-sm">Settings</div>
         <q-space />
-        <div class="text-subtitle2">3.0.5</div></q-card-section
+        <div class="text-subtitle2">3.1.0</div></q-card-section
       >
       <div class="text-center q-mx-sm" style="font-size: 12px">
         Click
