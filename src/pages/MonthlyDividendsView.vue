@@ -76,7 +76,7 @@ export default defineComponent({
   methods: {
     gotoTickerPage(ticker: string) {
       this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+        path: `/ticker/${ticker}`,
       });
     },
     getEntryColor(eventType: EventTypeEnum) {

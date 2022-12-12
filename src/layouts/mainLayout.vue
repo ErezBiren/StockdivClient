@@ -75,7 +75,7 @@
               dense
               :disable="store.portfolios.length < 3"
               hint="Portfolio"
-              @update:model-value="changePortfolio"
+              @update:model-value="changePortfolio()"
             ></q-select>
             <q-space />
             <q-input
@@ -92,11 +92,11 @@
               >
               <q-menu
                 fit
-                ref="searchTickerMenu"
                 v-if="showSearchResultsMenu"
                 v-model="showSearchResultsMenu"
                 anchor="bottom left"
                 no-focus
+                auto-close
                 self="top left"
                 @show="setFocusOnSearch()"
               >
@@ -320,7 +320,7 @@ import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { api } from 'src/boot/axios';
 import { bus, isNumber, showAPIError, showNotification } from 'src/utils/utils';
-import { date, QInput, QMenu } from 'quasar';
+import { date, QInput } from 'quasar';
 import { CurrencyCodeEnum } from 'src/utils/enums/CurrencyCodeEnum';
 import { ITransactionData } from 'src/utils/interfaces/ITransactionData';
 import { useRouter } from 'vue-router';
@@ -354,7 +354,6 @@ export default defineComponent({
       isSharePrice: ref<boolean>(false),
       dateFormat: ref<string>('YYYY-MM-DD'),
       searchTickerInput: ref<QInput>(),
-      searchTickerMenu: ref<QMenu>(),
       dataToSearch: ref<string>(''),
       searchListOptions: ref<{ ticker: string; name: string }[]>([]),
       showSearchResultsMenu: ref<boolean>(false),
@@ -500,7 +499,6 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       if (ticker === 'Nothing found') return;
-      if (this.searchTickerMenu) this.searchTickerMenu.hide();
       if (this.router.currentRoute.value.fullPath.includes('screener')) {
         this.loginLoading = true;
         api
@@ -520,7 +518,7 @@ export default defineComponent({
           });
       } else {
         this.router.push({
-          path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+          path: `/ticker/${ticker}`,
         });
       }
       this.dataToSearch = '';

@@ -7,23 +7,25 @@ export interface IScreenerTicker {
   sector: string;
   yearsIncrease: number;
   sharePrice: number;
-  frequency: keyof typeof DividendFrequencyEnum;
+  dividendFrequency: keyof typeof DividendFrequencyEnum;
   lastExDay: string;
   lastPayDay: string;
   dividendAmount: number;
   pe: number;
   fpe: number;
-  beta: number; //////
+  beta: number;
   high52w: number;
   low52w: number;
   payoutRatio: number;
   dividendYield: number;
-  marketCap: number;
+  marketCapital: number;
   dgr1: number;
   dgr3: number;
   dgr5: number;
   dgr10: number;
   debtEquity: number;
-  cccDividends: boolean;
+  cccList: boolean;
   inPortfolio: boolean;
+  dailyChange: number;
+  dailyChangePercent: number;
 }

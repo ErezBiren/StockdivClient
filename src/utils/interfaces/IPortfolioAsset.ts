@@ -14,7 +14,7 @@ export interface IPortfolioAsset {
   income: number;
   dividendYield: number;
   yoc: number;
-  dividendFrequency: DividendFrequencyEnum;
+  dividendFrequency: keyof typeof DividendFrequencyEnum;
   profitLoss: number;
   profitLossPercent: number;
   annualized: number;

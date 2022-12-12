@@ -1,75 +1,5 @@
 <template>
-  <q-page>
-    <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
-      <q-card-section class="q-pa-sm"
-        ><q-img
-          :src="tickerLogo"
-          style="height: 32px; width: 32px"
-          class="q-mr-sm"
-        />
-        <strong>{{ ticker }}</strong
-        >: {{ tickerName.substring(0, 30) }}
-        <q-icon
-          class="q-ml-md cursor-pointer"
-          name="edit_notes"
-          size="sm"
-          @click="openUserDataDialog"
-        >
-          <q-tooltip
-            class="userDataTooltipFont bg-indigo"
-            transition-show="rotate"
-            transition-hide="rotate"
-          >
-            <div v-html="getTickerDataTooltip"></div>
-          </q-tooltip>
-        </q-icon>
-        <q-separator />
-        <div :class="getMarketValueColor">
-          {{ filters.formatToCurrency(tickerPrice) }}
-          <div v-if="tickerInvested > 0">
-            &nbsp;(<q-icon class="q-mr-xs" :name="getArrow" />{{
-              filters.formatToPercentage(plPercentage)
-            }})
-          </div>
-        </div>
-        <div :class="getDailyChangeColor">
-          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
-            class="q-mr-xs"
-            :name="getDailyArrow"
-          />{{ filters.formatToPercentage(dailyChangePercentage) }})
-        </div>
-        <q-separator />
-        <q-icon
-          name="add_shopping_cart"
-          class="cursor-pointer q-ma-sm"
-          size="sm"
-          @click="addPurchase()"
-          ><q-tooltip class="bg-indigo">Add transaction</q-tooltip></q-icon
-        >
-        <q-icon
-          name="edit"
-          class="cursor-pointer q-ma-sm"
-          size="sm"
-          v-if="tickerInvested > 0"
-          @click="changeTicker()"
-          ><q-tooltip class="bg-indigo">Change ticker</q-tooltip></q-icon
-        >
-        <q-icon
-          name="call_split"
-          class="cursor-pointer q-ma-sm"
-          size="sm"
-          v-if="tickerInvested > 0"
-          @click="splitTicker()"
-          ><q-tooltip class="bg-indigo"
-            >Split: Automatically recalculate shares and share price</q-tooltip
-          ></q-icon
-        >
-      </q-card-section>
-      <q-inner-loading :showing="tickerInfoLoading">
-        <q-spinner-hourglass size="50px" color="primary" />
-      </q-inner-loading>
-    </q-card>
-
+  <q-page style="padding-top: 50px">
     <q-card
       class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1"
       v-if="tickerInvested > 0"
@@ -219,6 +149,92 @@
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
+    <q-page-sticky position="top">
+      <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
+        <div class="row no-wrapd">
+          <q-img
+            :src="tickerLogo"
+            style="height: 24px; width: 24px"
+            class="q-mr-sm"
+          />
+          <strong>{{ ticker }}</strong
+          >: {{ tickerName.substring(0, 30) }}&nbsp;
+          <q-tooltip
+            class="userDataTooltipFont bg-indigo"
+            transition-show="rotate"
+            transition-hide="rotate"
+          >
+            <div v-html="getTickerDataTooltip"></div>
+          </q-tooltip>
+          <q-separator vertical /><q-icon
+            size="xs"
+            name="more_vert"
+            class="q-mt-xs cursor-pointer"
+          >
+            <q-menu fit anchor="bottom left" self="top left" auto-close>
+              <q-list bordered dense separator>
+                <q-item clickable v-ripple @click="openUserDataDialog()">
+                  <q-item-section avatar>
+                    <q-icon size="sm" color="primary" name="edit_note" />
+                  </q-item-section>
+                  <q-item-section>Properties</q-item-section>
+                </q-item>
+                <q-item clickable v-ripple @click="addPurchase()">
+                  <q-item-section avatar>
+                    <q-icon
+                      size="sm"
+                      color="primary"
+                      name="add_shopping_cart"
+                    />
+                  </q-item-section>
+                  <q-item-section>Add transaction</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  v-if="tickerInvested > 0"
+                  @click="changeTicker()"
+                >
+                  <q-item-section avatar>
+                    <q-icon size="sm" color="primary" name="edit" />
+                  </q-item-section>
+                  <q-item-section>Change ticker</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  v-if="tickerInvested > 0"
+                  @click="splitTicker()"
+                >
+                  <q-item-section avatar>
+                    <q-icon size="sm" color="primary" name="call_split" />
+                  </q-item-section>
+                  <q-item-section>Split</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-icon>
+        </div>
+        <q-separator />
+        <div :class="getMarketValueColor">
+          {{ filters.formatToCurrency(tickerPrice) }}
+          <div v-if="tickerInvested > 0">
+            &nbsp;(<q-icon class="q-mr-xs" :name="getArrow" />{{
+              filters.formatToPercentage(plPercentage)
+            }})
+          </div>
+        </div>
+        <div :class="getDailyChangeColor">
+          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+            class="q-mr-xs"
+            :name="getDailyArrow"
+          />{{ filters.formatToPercentage(dailyChangePercentage) }})
+        </div>
+      </div>
+      <q-inner-loading :showing="tickerInfoLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-page-sticky>
   </q-page>
 
   <q-dialog v-model="userDataDialogShow" position="bottom">
@@ -571,12 +587,13 @@ export default defineComponent({
     let tickerDividendsSoFar = ref(0);
     let tickerInvested = ref(0);
     let tickerMarketValue = ref(0);
-
     return {
       getCurrencySymbol,
       editedTransaction: ref<ITransactionData>(),
       timelineItem: ref(),
-      timelineItems: ref<{ title: string; content: string }[]>([]),
+      timelineItems: ref<
+        { title: string; content: string; transaction?: ITransactionData }[]
+      >([]),
       timelineLoading: ref<boolean>(false),
       thumbStyle: ref({
         right: '2px',
@@ -826,7 +843,6 @@ export default defineComponent({
       tickerFrequency: ref<DividendFrequencyEnum>(DividendFrequencyEnum.Other),
       tickerCurrency: ref<string>('USD'),
       tickerPrice: ref<number>(0),
-      tickerPortfolio: ref<string>('All Portfolios'),
       allDividendsLoading: ref<boolean>(false),
       dividendData: ref<IDividendHistoryData[]>([]),
       newTransactionPortfolio: ref<string>(''),
@@ -963,7 +979,7 @@ export default defineComponent({
           .onOk(() => {
             this.serverProcessing = true;
             this.editedTransaction = {
-              portfolio: this.tickerPortfolio,
+              portfolio: this.store.selectedPortfolio,
               ticker: this.ticker,
               currency: this.tickerCurrency,
               shares: this.newTransactionShares,
@@ -976,7 +992,7 @@ export default defineComponent({
                 showNotification('Transaction was deleted successfully');
                 this.editedTransaction = undefined;
                 this.addPurchaseDialogShow = false;
-                this.runOnLoad();
+                bus.emit('transactionChange');
               })
               .catch((error) => {
                 showAPIError(error);
@@ -999,7 +1015,7 @@ export default defineComponent({
         10
       );
       this.editedTransaction = {
-        portfolio: this.tickerPortfolio,
+        portfolio: this.store.selectedPortfolio,
         ticker: this.ticker,
         currency: this.tickerCurrency,
         shares: this.newTransactionShares,
@@ -1107,7 +1123,7 @@ export default defineComponent({
               this.changeTickerDialogShow = false;
               showNotification('Ticker was changed successfully');
               this.router.push({
-                path: `/ticker/${this.store.selectedPortfolio}/${this.newTicker}`,
+                path: `/ticker/${this.newTicker}`,
               });
               this.newTicker = '';
             }
@@ -1123,10 +1139,13 @@ export default defineComponent({
     submitUserData() {
       this.serverProcessing = true;
       api
-        .post(`ticker/${this.ticker}/${this.tickerPortfolio}/userData`, {
-          tax: this.tickerUserData.tax,
-          notes: this.tickerUserData.notes,
-        })
+        .post(
+          `ticker/${this.ticker}/${this.store.selectedPortfolio}/userData`,
+          {
+            tax: this.tickerUserData.tax,
+            notes: this.tickerUserData.notes,
+          }
+        )
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
@@ -1144,7 +1163,10 @@ export default defineComponent({
         });
     },
     submitNewTransaction() {
-      if (this.editedTransaction && this.store.selectedPortfolio === 'All Portfolios') {
+      if (
+        this.editedTransaction &&
+        this.store.selectedPortfolio === 'All Portfolios'
+      ) {
         showNotification("You can't add/edit a transaction in All Portfolios");
       } else {
         const transactions: ITransactionData[] = [];
@@ -1199,7 +1221,7 @@ export default defineComponent({
     },
     getTickerUserData() {
       api
-        .get(`ticker/${this.ticker}/${this.tickerPortfolio}/userData`)
+        .get(`ticker/${this.ticker}/${this.store.selectedPortfolio}/userData`)
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
@@ -1218,7 +1240,9 @@ export default defineComponent({
           api.get(`ticker/${this.ticker}/name`),
           api.get(`ticker/${this.ticker}/logo`),
           api.get(`ticker/${this.ticker}/currency`),
-          api.get(`ticker/${this.ticker}/${this.tickerPortfolio}/averagePrice`),
+          api.get(
+            `ticker/${this.ticker}/${this.store.selectedPortfolio}/averagePrice`
+          ),
           api.get(`ticker/${this.ticker}/frequency`),
           api.get(`ticker/${this.ticker}/dailyChange`),
         ])
@@ -1247,10 +1271,14 @@ export default defineComponent({
       this.tickerInvestmentsLoading = true;
       axios
         .all([
-          api.get(`ticker/${this.ticker}/${this.tickerPortfolio}/invested`),
-          api.get(`ticker/${this.ticker}/${this.tickerPortfolio}/marketValue`),
           api.get(
-            `dividend/portfolio/${this.tickerPortfolio}/${this.ticker}/dividendsSoFar`
+            `ticker/${this.ticker}/${this.store.selectedPortfolio}/invested`
+          ),
+          api.get(
+            `ticker/${this.ticker}/${this.store.selectedPortfolio}/marketValue`
+          ),
+          api.get(
+            `dividend/portfolio/${this.store.selectedPortfolio}/${this.ticker}/dividendsSoFar`
           ),
         ])
         .then(
@@ -1326,7 +1354,7 @@ export default defineComponent({
       axios
         .all([
           api.get(
-            `ticker/${this.ticker}/${this.tickerPortfolio}/whatHappenedSince`
+            `ticker/${this.ticker}/${this.store.selectedPortfolio}/whatHappenedSince`
           ),
         ])
         .then(
@@ -1389,7 +1417,11 @@ export default defineComponent({
             this.timelineItems = responses[0].data;
             if (this.store.settings.dateFormat !== 'YYYY-MM-DD') {
               this.timelineItems.forEach(
-                (element: { title: string; content: string }) => {
+                (element: {
+                  title: string;
+                  content: string;
+                  transaction?: ITransactionData;
+                }) => {
                   element.title = filters.formatToDate(element.title);
                 }
               );
@@ -1412,29 +1444,23 @@ export default defineComponent({
       this.runAllDividendsRelatedAPIs();
       this.runTimelineRelatedAPIs();
     },
-    changePortfolio() {
-      this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${this.ticker}`,
-      });
-    },
   },
   mounted() {
     this.ticker = useRoute().params.ticker as string;
-    this.tickerPortfolio = useRoute().params.portfolio as string;
-    if (this.tickerPortfolio !== 'All Portfolios')
+    if (this.store.selectedPortfolio !== 'All Portfolios')
       this.newTransactionPortfolio =
-        this.tickerPortfolio === 'undefined'
+        this.store.selectedPortfolio === 'undefined'
           ? 'Portfolio'
-          : this.tickerPortfolio;
+          : this.store.selectedPortfolio;
     else this.newTransactionPortfolio = this.store.portfolios[0];
     this.runOnLoad();
     bus.on('updateTickerPage', this.runOnLoad);
-    bus.on('changedPortfolio', this.changePortfolio);
+    bus.on('changedPortfolio', this.runOnLoad);
     bus.on('changedSettings', this.runOnLoad);
   },
   unmounted() {
     bus.off('updateTickerPage', this.runOnLoad);
-    bus.off('changedPortfolio', this.changePortfolio);
+    bus.off('changedPortfolio', this.runOnLoad);
     bus.off('changedSettings', this.runOnLoad);
   },
   computed: {

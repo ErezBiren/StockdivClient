@@ -57,7 +57,7 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+        path: `/ticker/${ticker}`,
       });
     },
   },

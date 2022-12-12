@@ -37,7 +37,10 @@
               {{ filters.formatToCurrency(item.sharePrice) }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortScreener(SortByEnum.MARKETCAPITAL)"
+            >
               <b>Market cap:</b>
               {{
                 `${filters.formatToCurrency(
@@ -59,7 +62,10 @@
               {{ filters.formatToPercentage(item.dividendYield) }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left cursor-pointer"
+              @click="sortScreener(SortByEnum.DIVIDENDAMOUNT)"
+            >
               <b>Amount:</b>
               {{ filters.formatToCurrency(item.dividendAmount) }}
             </div>
@@ -69,7 +75,10 @@
             class="row no-wrap justify-center"
             v-if="item.frequency != 'Other' || item.yearsIncrease > 0"
           >
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right cursor-pointer"
+              @click="sortScreener(SortByEnum.FREQUENCY)"
+            >
               <b>Frequency:</b>
               {{ item.frequency }}
             </div>
@@ -102,28 +111,44 @@
           </div>
 
           <div class="row no-wrap justify-center">
-            <div class="col-6 text-right"><b>PE:</b> {{ item.pe }}</div>
+            <div class="col-6 text-right" @click="sortScreener(SortByEnum.PE)">
+              <b>PE:</b> {{ item.pe }}
+            </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left"><b>FPE:</b> {{ item.fpe }}</div>
+            <div class="col-6 text-left" @click="sortScreener(SortByEnum.FPE)">
+              <b>FPE:</b> {{ item.fpe }}
+            </div>
           </div>
 
           <div class="row no-wrap justify-center">
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right"
+              @click="sortScreener(SortByEnum.LOW52W)"
+            >
               <b>52w low:</b> {{ item.low52w }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left"
+              @click="sortScreener(SortByEnum.HIGH52W)"
+            >
               <b>52w high:</b> {{ item.high52w }}
             </div>
           </div>
 
           <div class="row no-wrap justify-center">
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right"
+              @click="sortScreener(SortByEnum.PAYOUTRATIO)"
+            >
               <b>Payout ratio:</b>
               {{ filters.formatToPercentage(item.payoutRatio) }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left"
+              @click="sortScreener(SortByEnum.DEBTEQUITY)"
+            >
               <b>Debt equity:</b>
               {{ filters.formatToPercentage(item.debtEquity) }}
             </div>
@@ -133,12 +158,15 @@
             class="row no-wrap justify-center"
             v-if="item.dgr1 != 0 || item.dgr3 != 0"
           >
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right"
+              @click="sortScreener(SortByEnum.DGR1)"
+            >
               <b>DGR1:</b>
               {{ filters.formatToPercentage(item.dgr1) }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div class="col-6 text-left" @click="sortScreener(SortByEnum.DGR3)">
               <b>DGR3:</b> {{ filters.formatToPercentage(item.dgr3) }}
             </div>
           </div>
@@ -147,29 +175,41 @@
             class="row no-wrap justify-center"
             v-if="item.dgr5 != 0 || item.dgr10 != 0"
           >
-            <div class="col-6 text-right">
+            <div
+              class="col-6 text-right"
+              @click="sortScreener(SortByEnum.DGR5)"
+            >
               <b>DGR5:</b>
               {{ filters.formatToPercentage(item.dgr5) }}
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left"
+              @click="sortScreener(SortByEnum.DGR10)"
+            >
               <b>DGR10:</b> {{ filters.formatToPercentage(item.dgr10) }}
             </div>
           </div>
 
           <div class="row no-wrap justify-center">
-            <div class="col-6 text-right">
-              <b>ccc Dividends:</b>
+            <div
+              class="col-6 text-right"
+              @click="sortScreener(SortByEnum.CCCLIST)"
+            >
+              <b>ccc List:</b>
               <q-checkbox
                 dense
                 checked-icon="task_alt"
                 unchecked-icon="highlight_off"
-                v-model="item.cccDividends"
+                v-model="item.cccList"
                 disable
               />
             </div>
             <q-separator vertical class="q-mx-md" />
-            <div class="col-6 text-left">
+            <div
+              class="col-6 text-left"
+              @click="sortScreener(SortByEnum.INPORTFOLIO)"
+            >
               <b>In portfolio:</b>
               <q-checkbox
                 dense
@@ -191,17 +231,19 @@
           name="more_vert"
           class="q-mt-xs cursor-pointer"
         >
-          <q-menu fit anchor="bottom left" self="top left" ref="screenerMenu">
-            <q-list bordered separator>
+          <q-menu auto-close fit anchor="bottom left" self="top left">
+            <q-list bordered dense separator>
               <q-item clickable v-ripple @click="downloadcccDividends()">
-                <q-item-section>
-                  <q-item-label>Add ccc dividends</q-item-label>
+                <q-item-section avatar>
+                  <q-icon size="sm" color="primary" name="download" />
                 </q-item-section>
+                <q-item-section>Get ccc dividends</q-item-section>
               </q-item>
               <q-item clickable v-ripple @click="addTicker()">
-                <q-item-section>
-                  <q-item-label>Add ticker</q-item-label>
+                <q-item-section avatar>
+                  <q-icon size="sm" color="primary" name="add" />
                 </q-item-section>
+                <q-item-section>Add ticker</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -223,7 +265,6 @@ import { defineComponent, ref } from 'vue';
 import { bus, filters, showAPIError, showNotification } from '../utils/utils';
 import { useRouter } from 'vue-router';
 import { stockdivStore } from '../stores/stockdivStore';
-import { QMenu } from 'quasar';
 
 export default defineComponent({
   name: 'screenerPage',
@@ -239,7 +280,6 @@ export default defineComponent({
       screenerTickers: ref<IScreenerTicker[]>([]),
       sortBy: ref<SortByEnum>(SortByEnum.YEARS),
       sortDirection: ref<SortDirectionEnum>(SortDirectionEnum.ASC),
-      screenerMenu: ref<QMenu>(),
     };
   },
   methods: {
@@ -268,7 +308,6 @@ export default defineComponent({
     },
     addTicker() {
       showNotification('Search for ticker to add it to the screener');
-      if (this.screenerMenu) this.screenerMenu.hide();
       setTimeout(() => {
         bus.emit('searchTickerFocus');
       }, 500);
@@ -298,17 +337,17 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+        path: `/ticker/${ticker}`,
       });
     },
-    sortScreener(sortBy: SortByEnum) {
+    sortScreener(sortBy: SortByEnum, sortDirection?: SortDirectionEnum) {
       if (sortBy === this.sortBy) {
         this.sortDirection =
           this.sortDirection === SortDirectionEnum.ASC
             ? SortDirectionEnum.DESC
             : SortDirectionEnum.ASC;
       } else this.sortBy = sortBy;
-
+      if (sortDirection) this.sortDirection = sortDirection;
       switch (this.sortBy) {
         case SortByEnum.TICKER: {
           this.screenerTickers.sort(
@@ -316,6 +355,168 @@ export default defineComponent({
               this.sortDirection === SortDirectionEnum.ASC
                 ? pa1.ticker.localeCompare(pa2.ticker)
                 : pa2.ticker.localeCompare(pa1.ticker)
+          );
+          break;
+        }
+        case SortByEnum.DIVIDENDAMOUNT: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dividendAmount - pa2.dividendAmount
+                : pa2.dividendAmount - pa1.dividendAmount
+          );
+          break;
+        }
+        case SortByEnum.PAYOUTRATIO: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.payoutRatio - pa2.payoutRatio
+                : pa2.payoutRatio - pa1.payoutRatio
+          );
+          break;
+        }
+        case SortByEnum.MARKETCAPITAL: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.marketCapital - pa2.marketCapital
+                : pa2.marketCapital - pa1.marketCapital
+          );
+          break;
+        }
+        case SortByEnum.DGR1: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dgr1 - pa2.dgr1
+                : pa2.dgr1 - pa1.dgr1
+          );
+          break;
+        }
+        case SortByEnum.DGR3: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dgr3 - pa2.dgr3
+                : pa2.dgr3 - pa1.dgr3
+          );
+          break;
+        }
+        case SortByEnum.DGR5: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dgr5 - pa2.dgr5
+                : pa2.dgr5 - pa1.dgr5
+          );
+          break;
+        }
+        case SortByEnum.DGR10: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dgr10 - pa2.dgr10
+                : pa2.dgr10 - pa1.dgr10
+          );
+          break;
+        }
+        case SortByEnum.DEBTEQUITY: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.debtEquity - pa2.debtEquity
+                : pa2.debtEquity - pa1.debtEquity
+          );
+          break;
+        }
+        case SortByEnum.CCCLIST: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? Number(pa1.cccList) - Number(pa2.cccList)
+                : Number(pa2.cccList) - Number(pa1.cccList)
+          );
+          break;
+        }
+        case SortByEnum.INPORTFOLIO: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? Number(pa1.inPortfolio) - Number(pa2.inPortfolio)
+                : Number(pa2.inPortfolio) - Number(pa1.inPortfolio)
+          );
+          break;
+        }
+        case SortByEnum.PE: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.pe - pa2.pe
+                : pa2.pe - pa1.pe
+          );
+          break;
+        }
+        case SortByEnum.PE: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.fpe - pa2.fpe
+                : pa2.fpe - pa1.fpe
+          );
+          break;
+        }
+        case SortByEnum.BETA: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.beta - pa2.beta
+                : pa2.beta - pa1.beta
+          );
+          break;
+        }
+        case SortByEnum.HIGH52W: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.high52w - pa2.high52w
+                : pa2.high52w - pa1.high52w
+          );
+          break;
+        }
+        case SortByEnum.LOW52W: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.low52w - pa2.low52w
+                : pa2.low52w - pa1.low52w
+          );
+          break;
+        }
+        case SortByEnum.DAILYCHANGEPERCENT: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dailyChangePercent - pa2.dailyChangePercent
+                : pa2.dailyChangePercent - pa1.dailyChangePercent
+          );
+          break;
+        }
+        case SortByEnum.DAILYCHANGE: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dailyChange - pa2.dailyChange
+                : pa2.dailyChange - pa1.dailyChange
+          );
+          break;
+        }
+        case SortByEnum.FREQUENCY: {
+          this.screenerTickers.sort(
+            (pa1: IScreenerTicker, pa2: IScreenerTicker) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.dividendFrequency.localeCompare(pa2.dividendFrequency)
+                : pa2.dividendFrequency.localeCompare(pa1.dividendFrequency)
           );
           break;
         }
@@ -378,7 +579,11 @@ export default defineComponent({
               showNotification(
                 'Add tickers using the 3 dots menu/search ticker at the top'
               );
-            } else this.sortScreener(SortByEnum.YEARS);
+            } else
+              this.sortScreener(
+                this.store.settings.screenerView.sortBy,
+                this.store.settings.screenerView.sortDirection
+              );
           }
         })
         .catch((err) => {

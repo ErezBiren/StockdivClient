@@ -11,7 +11,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.15.7",
+    "@quasar/extras": "^1.15.8",
     "@quasar/quasar-ui-qcalendar": "^4.0.0-beta.15",
     "apexcharts": "^3.36.3",
     "axios": "^1.2.1",
@@ -25,8 +25,8 @@
   },
   "devDependencies": {
     "@quasar/app-webpack": "^3.6.2",
-    "@typescript-eslint/eslint-plugin": "^5.46.0",
-    "@typescript-eslint/parser": "^5.46.0",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/parser": "^5.46.1",
     "eslint": "^8.29.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-vue": "^9.8.0",

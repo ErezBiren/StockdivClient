@@ -1,40 +1,7 @@
 <template>
-  <q-page v-if="store.token !== '' && store.portfolios.length > 0">
+  <q-page v-if="store.token !== '' && store.portfolios.length > 0" style="padding-top: 50px">
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div class="text-h5 row no-wrap justify-center">
-          {{ store.selectedPortfolio }}
-          <q-icon
-            color="blue"
-            name="account_balance_wallet"
-            class="cursor-pointer q-my-xs q-ml-sm"
-            @click="gotoPortfolio()"
-          >
-            <q-tooltip class="bg-indigo">Show portfolio</q-tooltip>
-          </q-icon>
-          <q-icon
-            color="blue"
-            name="filter_list"
-            class="cursor-pointer q-my-xs q-ml-sm"
-            @click="gotoScreener()"
-          >
-            <q-tooltip class="bg-indigo">Show screener</q-tooltip>
-          </q-icon>
-        </div>
-        <q-separator />
-        <div :class="getMarketValueColor">
-          {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon
-            class="q-mr-xs"
-            :name="getArrow"
-          />{{ filters.formatToPercentage(plPercentage) }})
-        </div>
-        <div :class="getDailyChangeColor">
-          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
-            class="q-mr-xs"
-            :name="getDailyArrow"
-          />{{ filters.formatToPercentage(dailyChangePercentage) }})
-        </div>
-        <q-separator />
         <apexchart
           type="bar"
           height="300"
@@ -90,14 +57,17 @@
               class="q-ma-sm"
               text-color="white"
             >
-              {{ ticker }}
-            </q-chip><br/>
+              {{ ticker }} </q-chip
+            ><br />
             <q-img
               :src="getTickerIcon(index)"
               style="height: 32px; width: 32px"
             />
             <q-tooltip
-              >Next Dividend: {{ filters.formatToCurrency(nextDivTickersAmount[index]) }}</q-tooltip
+              >Next Dividend:
+              {{
+                filters.formatToCurrency(nextDivTickersAmount[index])
+              }}</q-tooltip
             >
           </div>
         </div>
@@ -236,6 +206,45 @@
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
+    <q-page-sticky position="top">
+      <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
+        <div class="text-h5 row no-wrap justify-center">
+          {{ store.selectedPortfolio }}<q-separator vertical class="q-mx-md" />
+          <q-icon
+            color="blue"
+            name="account_balance_wallet"
+            class="cursor-pointer q-my-xs q-ml-sm"
+            @click="gotoPortfolio()"
+          >
+            <q-tooltip class="bg-indigo">Show assets</q-tooltip>
+          </q-icon>
+          <q-icon
+            color="blue"
+            name="filter_list"
+            class="cursor-pointer q-my-xs q-ml-sm"
+            @click="gotoScreener()"
+          >
+            <q-tooltip class="bg-indigo">Show screener</q-tooltip>
+          </q-icon>
+        </div>
+        <q-separator />
+        <div :class="getMarketValueColor">
+          {{ filters.formatToCurrency(portfolioMarketValue) }} (<q-icon
+            class="q-mr-xs"
+            :name="getArrow"
+          />{{ filters.formatToPercentage(plPercentage) }})
+        </div>
+        <div :class="getDailyChangeColor">
+          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+            class="q-mr-xs"
+            :name="getDailyArrow"
+          />{{ filters.formatToPercentage(dailyChangePercentage) }})
+        </div>
+      </div>
+      <q-inner-loading :showing="marketValueLoading || dividendsInfoLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-page-sticky>
   </q-page>
 </template>
 
@@ -1034,7 +1043,7 @@ export default defineComponent({
     },
     gotoTickerPage(ticker: string) {
       this.router.push({
-        path: `/ticker/${this.store.selectedPortfolio}/${ticker}`,
+        path: `/ticker/${ticker}`,
       });
     },
     getTickerIcon(index: number) {
