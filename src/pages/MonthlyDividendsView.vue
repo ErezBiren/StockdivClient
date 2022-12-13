@@ -14,7 +14,13 @@
               v-for="event in eventsMap[timestamp.date]"
               :key="event.id"
             >
-              <div :class="getEntryColor(event.eventType)">
+              <div
+                :class="getEntryColor(event.eventType)"
+                v-if="
+                  (event.eventType === EventTypeEnum.PAYDAY && showPay) ||
+                  (event.eventType === EventTypeEnum.EXDAY && showEx)
+                "
+              >
                 <q-img
                   class="q-ma-xs cursor-pointer"
                   @click="gotoTickerPage(event.ticker)"
@@ -31,6 +37,13 @@
           </template>
         </q-calendar-month>
       </q-card-section>
+      <q-page-sticky position="top">
+        <div class="row q-pa-sm bg-white shadow-8">
+          <q-toggle dense v-model="showEx" label="Ex" class="q-mr-md"/>
+          <q-toggle dense v-model="showPay" label="Pay" />
+        </div>
+      </q-page-sticky>
+
       <q-inner-loading :showing="monthlyViewLoading">
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
@@ -66,6 +79,8 @@ export default defineComponent({
       month,
       router,
       store,
+      showEx: ref<boolean>(true),
+      showPay: ref<boolean>(true),
       filters,
       EventTypeEnum,
       selectedDate: ref<string>(),

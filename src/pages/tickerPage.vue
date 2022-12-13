@@ -131,12 +131,19 @@
       v-if="dividendData.length > 0 || tickerInvested > 0"
     >
       <q-card-section>
+        <q-toggle
+          dense
+          v-model="showDivs"
+          label="Show Dividends"
+          class="q-ma-none q-pa-none"
+          @click="toggleShowDividends"
+        />
         <q-scroll-area
           style="height: 280px; max-width: 100%"
           :thumb-style="thumbStyle"
         >
           <vue-horizontal-timeline
-            :items="timelineItems"
+            :items="timelineItemsToShow"
             timeline-background="#E1F5FE"
             content-class="timelineFont"
             title-class="timelineTitleFont"
@@ -149,7 +156,7 @@
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
-    <q-page-sticky position="top">
+    <q-page-sticky position="top" style="z-index: 2">
       <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
         <div class="row no-wrapd">
           <q-img
@@ -591,7 +598,11 @@ export default defineComponent({
       getCurrencySymbol,
       editedTransaction: ref<ITransactionData>(),
       timelineItem: ref(),
+      showDivs: ref<boolean>(false),
       timelineItems: ref<
+        { title: string; content: string; transaction?: ITransactionData }[]
+      >([]),
+      timelineItemsToShow: ref<
         { title: string; content: string; transaction?: ITransactionData }[]
       >([]),
       timelineLoading: ref<boolean>(false),
@@ -965,6 +976,13 @@ export default defineComponent({
     };
   },
   methods: {
+    toggleShowDividends() {
+      if (this.showDivs) this.timelineItemsToShow = this.timelineItems;
+      else
+        this.timelineItemsToShow = this.timelineItems.filter(
+          (item) => item.transaction
+        );
+    },
     deleteTransaction() {
       if (this.store.selectedPortfolio === 'All Portfolios') {
         showNotification("You can't delete a transaction from All Portfolios");
@@ -1415,6 +1433,7 @@ export default defineComponent({
         .then(
           axios.spread((...responses) => {
             this.timelineItems = responses[0].data;
+            let withTransactions = false;
             if (this.store.settings.dateFormat !== 'YYYY-MM-DD') {
               this.timelineItems.forEach(
                 (element: {
@@ -1423,9 +1442,18 @@ export default defineComponent({
                   transaction?: ITransactionData;
                 }) => {
                   element.title = filters.formatToDate(element.title);
+                  if (element.transaction) withTransactions = true;
                 }
               );
+            } else {
+              for (let i = 0; i < this.timelineItems.length; i++) {
+                if (!this.timelineItems[i].transaction) continue;
+                withTransactions = true;
+                break;
+              }
             }
+            this.showDivs = !withTransactions;
+            this.toggleShowDividends();
           })
         )
         .catch((err: AxiosError) => {

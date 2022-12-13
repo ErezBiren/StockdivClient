@@ -1,5 +1,8 @@
 <template>
-  <q-page v-if="store.token !== '' && store.portfolios.length > 0" style="padding-top: 50px">
+  <q-page
+    v-if="store.token !== '' && store.portfolios.length > 0"
+    style="padding-top: 50px"
+  >
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
         <apexchart
@@ -187,12 +190,20 @@
 
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
+        <q-toggle
+          dense
+          v-model="showDivs"
+          label="Show Dividends"
+          class="q-ma-none q-pa-none"
+          @click="toggleShowDividends"
+        />
+
         <q-scroll-area
           style="height: 280px; max-width: 100%"
           :thumb-style="thumbStyle"
         >
           <vue-horizontal-timeline
-            :items="timelineItems"
+            :items="timelineItemsToShow"
             timeline-background="#E1F5FE"
             content-class="timelineFont"
             title-class="timelineTitleFont"
@@ -259,6 +270,7 @@ import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
 import { useRouter } from 'vue-router';
 import { IDividendAlert } from 'src/utils/interfaces/IDividendAlert';
+import { ITransactionData } from 'src/utils/interfaces/ITransactionData';
 
 export default defineComponent({
   name: 'overView',
@@ -271,6 +283,7 @@ export default defineComponent({
     return {
       timelineItem: ref(),
       store,
+      showDivs: ref<boolean>(false),
       router,
       filters,
       roiChartSeries: ref<[{ data: number[] }, { data: number[] }]>([
@@ -327,7 +340,13 @@ export default defineComponent({
           opacity: 1,
         },
       }),
-      timelineItems: ref<{ title: string; content: string }[]>([]),
+      timelineItems: ref<
+        { title: string; content: string; transaction?: ITransactionData }[]
+      >([]),
+      timelineItemsToShow: ref<
+        { title: string; content: string; transaction?: ITransactionData }[]
+      >([]),
+
       timelineLoading: ref<boolean>(false),
       monthsProjectionChart: ref<ApexCharts>(),
       monthsProjectionLoading: ref<boolean>(false),
@@ -1018,6 +1037,13 @@ export default defineComponent({
     };
   },
   methods: {
+    toggleShowDividends() {
+      if (this.showDivs) this.timelineItemsToShow = this.timelineItems;
+      else
+        this.timelineItemsToShow = this.timelineItems.filter(
+          (item) => item.transaction
+        );
+    },
     gotoPortfolio() {
       this.router.push({ path: '/portfolio' });
     },
@@ -1239,11 +1265,16 @@ export default defineComponent({
             this.timelineItems = responses[0].data;
             if (this.store.settings.dateFormat != 'YYYY-MM-DD') {
               this.timelineItems.forEach(
-                (element: { title: string; content: string }) => {
+                (element: {
+                  title: string;
+                  content: string;
+                  transaction?: ITransactionData;
+                }) => {
                   element.title = filters.formatToDate(element.title);
                 }
               );
             }
+            this.toggleShowDividends();
           })
         )
         .catch((err: AxiosError) => {
