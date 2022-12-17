@@ -1055,7 +1055,7 @@ export default defineComponent({
     },
     gotoDividendsThisMonth() {
       this.router.push({
-        path: `/monthlyDividendsView/${new Date().toLocaleString('default', {
+        path: `/monthlyDividendsView/${new Date().toLocaleString('en-us', {
           month: 'long',
         })}`,
       });
