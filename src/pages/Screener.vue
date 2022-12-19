@@ -561,7 +561,7 @@ export default defineComponent({
     getScreener() {
       const notification = setTimeout(() => {
         showNotification(
-          'You have many transactions, it might take a bit longer than expected...'
+          'You have many tickers, it might take a bit longer than expected...'
         );
       }, 20000);
 
@@ -596,9 +596,14 @@ export default defineComponent({
     },
   },
   mounted() {
-    bus.on('reloadScreener', this.getScreener);
-    bus.on('changedSettings', this.getScreener);
-    this.getScreener();
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      bus.on('reloadScreener', this.getScreener);
+      bus.on('changedSettings', this.getScreener);
+      this.getScreener();
+    }
   },
   beforeUnmount() {
     bus.off('reloadScreener', this.getScreener);

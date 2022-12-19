@@ -42,7 +42,12 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.runGetMessages();
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      this.runGetMessages();
+    }
   },
   methods: {
     markAsRead() {

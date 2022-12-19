@@ -889,10 +889,16 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.viewMode = this.store.settings.portfolioView.mode || ViewModeEnum.CARD;
-    this.getPortfolio();
-    bus.on('changedPortfolio', this.getPortfolio);
-    bus.on('changedSettings', this.getPortfolio);
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      this.viewMode =
+        this.store.settings.portfolioView.mode || ViewModeEnum.CARD;
+      this.getPortfolio();
+      bus.on('changedPortfolio', this.getPortfolio);
+      bus.on('changedSettings', this.getPortfolio);
+    }
   },
   unmounted() {
     bus.off('changedPortfolio', this.getPortfolio);

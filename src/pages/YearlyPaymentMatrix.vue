@@ -10,7 +10,10 @@
         >
           <thead>
             <tr>
-              <th class="bg-green-2 cursor-pointer" @click="sortData(SortByEnum.TICKER)">
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="sortData(SortByEnum.TICKER)"
+              >
                 <b>Ticker</b>
               </th>
               <th
@@ -70,7 +73,10 @@
               >
                 Dec
               </th>
-              <th class="bg-green-2 cursor-pointer" @click="sortData(SortByEnum.INCOME)">
+              <th
+                class="bg-green-2 cursor-pointer"
+                @click="sortData(SortByEnum.INCOME)"
+              >
                 <b>Total</b>
               </th>
               <th class="bg-green-2">Jan</th>
@@ -200,7 +206,7 @@
 <script lang="ts">
 import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
-import { showAPIError, bus } from 'src/utils/utils';
+import { showAPIError, bus, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
@@ -317,9 +323,14 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.loadMatrixData();
-    bus.on('changedPortfolio', this.loadMatrixData);
-    bus.on('changedSettings', this.loadMatrixData);
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      this.loadMatrixData();
+      bus.on('changedPortfolio', this.loadMatrixData);
+      bus.on('changedSettings', this.loadMatrixData);
+    }
   },
   unmounted() {
     bus.off('changedPortfolio', this.loadMatrixData);

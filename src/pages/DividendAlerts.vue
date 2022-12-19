@@ -6,7 +6,10 @@
         v-for="(item, i) in store.dividendAlerts"
         v-bind:key="i"
       >
-        <q-card-section class="cursor-pointer" @click="gotoTickerPage(item.ticker)">
+        <q-card-section
+          class="cursor-pointer"
+          @click="gotoTickerPage(item.ticker)"
+        >
           <b
             ><q-img
               class="q-ma-sm"
@@ -35,7 +38,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
-import { filters } from '../utils/utils';
+import { filters, showNotification } from '../utils/utils';
 import { useRouter } from 'vue-router';
 export default defineComponent({
   name: 'DividendAlerts',
@@ -60,6 +63,12 @@ export default defineComponent({
         path: `/ticker/${ticker}`,
       });
     },
+  },
+  mounted() {
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    }
   },
 });
 </script>

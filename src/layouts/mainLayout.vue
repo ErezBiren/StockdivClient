@@ -196,6 +196,44 @@
   </q-dialog>
 
   <q-dialog
+    v-model="showContactWindow"
+    role="dialog"
+    aria-modal="true"
+    position="bottom"
+  >
+    <q-card class="bg-info">
+      <q-card-section class="text-h5"
+        ><div class="row no-wrap">
+          <q-img :src="'logo.png'" class="logo" />
+          <div class="q-mt-sm">Contact</div>
+        </div>
+        <q-separator />
+        <q-input
+          v-model="feedback"
+          type="textarea"
+          counter
+          maxlength="1000"
+          autogrow
+          autofocus
+          dense
+          hint="What's on your mind?"
+        />
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-icon
+          name="send"
+          class="cursor-pointer q-ma-sm"
+          @click="sendFeedback()"
+          ><q-tooltip class="bg-indigo">Send</q-tooltip></q-icon
+        >
+      </q-card-actions>
+      <q-inner-loading :showing="sendingFeedback">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog
     v-model="showSettingsPopup"
     role="dialog"
     aria-modal="true"
@@ -301,6 +339,12 @@
           @click="importTransactionsWindow()"
           ><q-tooltip class="bg-indigo">Import transactions</q-tooltip></q-icon
         >
+        <q-icon
+          name="rate_review"
+          class="cursor-pointer q-ma-sm"
+          @click="showContactUsWindow()"
+          ><q-tooltip class="bg-indigo">Contact</q-tooltip></q-icon
+        >
       </q-card-actions>
       <q-separator />
       <q-card-section
@@ -342,6 +386,8 @@ export default defineComponent({
     ];
     let searchTimer = -1;
     return {
+      feedback: ref<string>(''),
+      showContactWindow: ref<boolean>(false),
       store,
       router,
       userName: ref<string>(''),
@@ -361,11 +407,36 @@ export default defineComponent({
       defaultTax: ref<number>(0),
       decimalDigits: ref<number>(2),
       savingSettings: ref<boolean>(false),
+      sendingFeedback: ref<boolean>(false),
       dateFormatOptions,
       searchTimer,
     };
   },
   methods: {
+    sendFeedback() {
+      this.sendingFeedback = true;
+      api
+        .post('user/contact', { feedback: this.feedback })
+        .then((response) => {
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            this.showContactWindow = false;
+            this.feedback = '';
+            showNotification("Thank you for your feedback, we'll be in touch");
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.sendingFeedback = false;
+        });
+    },
+    showContactUsWindow() {
+      this.showContactWindow = true;
+      this.showSettingsPopup = false;
+    },
     showAnnouncements() {
       this.router.push({ path: '/announcements' });
     },
@@ -764,7 +835,12 @@ export default defineComponent({
             if (this.showNoTransactionsDialog) return;
             if (this.router.currentRoute.value.fullPath === '/')
               this.router.push({ path: '/overview' });
-            else bus.emit('updateTickerPage');
+            else if (this.router.currentRoute.value.fullPath.includes('ticker'))
+              bus.emit('updateTickerPage');
+            else if (
+              this.router.currentRoute.value.fullPath.includes('overview')
+            )
+              bus.emit('changedPortfolio');
           })
         )
         .catch((err: AxiosError) => {

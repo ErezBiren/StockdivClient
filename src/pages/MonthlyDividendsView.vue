@@ -39,7 +39,7 @@
       </q-card-section>
       <q-page-sticky position="top">
         <div class="row q-pa-sm bg-white shadow-8">
-          <q-toggle dense v-model="showEx" label="Ex" class="q-mr-md"/>
+          <q-toggle dense v-model="showEx" label="Ex" class="q-mr-md" />
           <q-toggle dense v-model="showPay" label="Pay" />
         </div>
       </q-page-sticky>
@@ -55,7 +55,7 @@
 import { defineComponent, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { QCalendarMonth } from '@quasar/quasar-ui-qcalendar';
-import { filters, bus } from '../utils/utils';
+import { filters, bus, showNotification } from '../utils/utils';
 import '@quasar/quasar-ui-qcalendar/src/QCalendarMonth.sass';
 import '@quasar/quasar-ui-qcalendar/src/QCalendarVariables.sass';
 import '@quasar/quasar-ui-qcalendar/src/QCalendarTransitions.sass';
@@ -121,12 +121,18 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.month =
-      new Date(Date.parse(useRoute().params.month + ' 1, 2022')).getMonth() + 1;
-    this.selectedDate = `${new Date().getFullYear()}-${this.month}-01`;
-    this.getMonthEvents();
-    bus.on('changedPortfolio', this.getMonthEvents);
-    bus.on('changedSettings', this.getMonthEvents);
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      this.month =
+        new Date(Date.parse(useRoute().params.month + ' 1, 2022')).getMonth() +
+        1;
+      this.selectedDate = `${new Date().getFullYear()}-${this.month}-01`;
+      this.getMonthEvents();
+      bus.on('changedPortfolio', this.getMonthEvents);
+      bus.on('changedSettings', this.getMonthEvents);
+    }
   },
   unmounted() {
     bus.off('changedPortfolio', this.getMonthEvents);

@@ -171,22 +171,26 @@
             transition-show="rotate"
             transition-hide="rotate"
           >
-            <div v-html="getTickerDataTooltip"></div>
-          </q-tooltip>
-          <q-separator vertical /><q-icon
+            <div v-html="getTickerDataTooltip"></div> </q-tooltip
+          ><q-space /> <q-separator vertical /><q-icon
             size="xs"
             name="more_vert"
             class="q-mt-xs cursor-pointer"
           >
-            <q-menu fit anchor="bottom left" self="top left" auto-close>
+            <q-menu fit anchor="bottom left" self="top left">
               <q-list bordered dense separator>
-                <q-item clickable v-ripple @click="openUserDataDialog()">
+                <q-item
+                  v-close-popup
+                  clickable
+                  v-ripple
+                  @click="openUserDataDialog()"
+                >
                   <q-item-section avatar>
                     <q-icon size="sm" color="primary" name="edit_note" />
                   </q-item-section>
                   <q-item-section>Properties</q-item-section>
                 </q-item>
-                <q-item clickable v-ripple @click="addPurchase()">
+                <q-item v-close-popup clickable v-ripple @click="addPurchase()">
                   <q-item-section avatar>
                     <q-icon
                       size="sm"
@@ -199,6 +203,7 @@
                 <q-item
                   clickable
                   v-ripple
+                  v-close-popup
                   v-if="tickerInvested > 0"
                   @click="changeTicker()"
                 >
@@ -210,6 +215,7 @@
                 <q-item
                   clickable
                   v-ripple
+                  v-close-popup
                   v-if="tickerInvested > 0"
                   @click="splitTicker()"
                 >
@@ -217,6 +223,41 @@
                     <q-icon size="sm" color="primary" name="call_split" />
                   </q-item-section>
                   <q-item-section>Split</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  v-if="
+                    tickerInvested > 0 &&
+                    store.selectedPortfolio !== 'All Portfolios'
+                  "
+                >
+                  <q-item-section avatar>
+                    <q-icon size="sm" color="primary" name="drive_file_move" />
+                  </q-item-section>
+                  <q-item-section>Move ticker to</q-item-section>
+                  <q-item-section side>
+                    <q-icon name="keyboard_arrow_right" />
+                  </q-item-section>
+                  <q-menu anchor="top end" self="top start">
+                    <q-list>
+                      <q-item
+                        v-for="portfolio in getPortfoliosList"
+                        :key="portfolio"
+                        dense
+                        clickable
+                        v-ripple
+                        v-close-popup
+                        @click="moveTickerTo(portfolio)"
+                      >
+                        <q-item-section>{{
+                          portfolio === 'All Portfolios'
+                            ? '- New Portfolio -'
+                            : portfolio
+                        }}</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
                 </q-item>
               </q-list>
             </q-menu>
@@ -469,8 +510,20 @@
                   </q-date>
                 </q-popup-proxy>
               </q-icon>
-            </template>
-          </q-input>
+            </template> </q-input
+          ><q-space />
+          <q-checkbox
+            dense
+            label="Is stock dividend?"
+            checked-icon="task_alt"
+            unchecked-icon="highlight_off"
+            v-model="isStockDividend"
+            @click="handleStockDividend"
+            ><q-tooltip class="bg-indigo"
+              >Adding a stock dividend means the stock has no real
+              cost</q-tooltip
+            ></q-checkbox
+          >
         </q-card-section>
         <q-card-section class="row no-wrap justify-between">
           <q-input
@@ -497,6 +550,7 @@
             @change="sharePriceChange"
             type="number"
             step="0.0001"
+            :disable="isStockDividend"
             hint="Share price"
             :prefix="getCurrencySymbol"
             :rules="[(val) => (val && val > 0) || 'Price is missing']"
@@ -523,6 +577,7 @@
             v-model.number="newTransactionTotal"
             @keyup="totalChange"
             @change="totalChange"
+            :disable="isStockDividend"
             type="number"
             step="0.0001"
             hint="Total price"
@@ -596,6 +651,7 @@ export default defineComponent({
     let tickerMarketValue = ref(0);
     return {
       getCurrencySymbol,
+      isStockDividend: ref<boolean>(false),
       editedTransaction: ref<ITransactionData>(),
       timelineItem: ref(),
       showDivs: ref<boolean>(false),
@@ -634,6 +690,14 @@ export default defineComponent({
       ]),
       whatHappenedSinceOptions: ref({
         chart: {
+          dropShadow: {
+            enabled: true,
+            color: '#000',
+            top: 18,
+            left: 7,
+            blur: 10,
+            opacity: 0.2,
+          },
           height: 350,
           type: 'line',
           toolbar: {
@@ -655,7 +719,7 @@ export default defineComponent({
           intersect: false,
         },
         stroke: {
-          width: [2, 5],
+          width: [5, 5],
           curve: 'straight',
         },
         title: {
@@ -851,6 +915,7 @@ export default defineComponent({
       tickerInvestmentsLoading: ref<boolean>(false),
       tickerInfoLoading: ref<boolean>(false),
       tickerAveragePrice: ref<number>(0),
+      tickerDividendYield: ref<number>(0),
       tickerFrequency: ref<DividendFrequencyEnum>(DividendFrequencyEnum.Other),
       tickerCurrency: ref<string>('USD'),
       tickerPrice: ref<number>(0),
@@ -976,6 +1041,51 @@ export default defineComponent({
     };
   },
   methods: {
+    handleStockDividend() {
+      this.newTransactionSharePrice = 0.01;
+      this.newTransactionTotal =
+        this.newTransactionSharePrice * this.newTransactionShares;
+    },
+    processMoveTickerTo(portfolio: string) {
+      this.tickerInfoLoading = true;
+      api
+        .patch(
+          `ticker/${this.ticker}/move/${this.store.selectedPortfolio}/${portfolio}`
+        )
+        .then((response) => {
+          if (response.data.error) {
+            showNotification(response.data.error);
+          } else {
+            bus.emit('transactionChange');
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.tickerInfoLoading = false;
+        });
+    },
+    moveTickerTo(portfolio: string) {
+      if (portfolio === 'All Portfolios') {
+        this.$q
+          .dialog({
+            position: 'bottom',
+            title: 'Move ticker to portfolio',
+            message: 'Enter portfolio name',
+            prompt: {
+              model: '',
+              isValid: (val: string) =>
+                val.length > 0 && val !== 'All Portfolios',
+            },
+          })
+          .onOk((newPortfolio: string) => {
+            this.processMoveTickerTo(newPortfolio);
+          });
+      } else {
+        this.processMoveTickerTo(portfolio);
+      }
+    },
     toggleShowDividends() {
       if (this.showDivs) this.timelineItemsToShow = this.timelineItems;
       else
@@ -1081,6 +1191,7 @@ export default defineComponent({
       this.newTransactionTotal = 0;
       this.newTransactionWhen = getTodayDate(false);
       this.editedTransaction = undefined;
+      this.isStockDividend = false;
     },
     setNewPortfolio(val: string) {
       this.newTransactionPortfolio = val;
@@ -1095,6 +1206,7 @@ export default defineComponent({
       }
     },
     async getPriceForTransaction() {
+      if (this.isStockDividend) return;
       this.serverProcessing = true;
       this.newTransactionSharePrice = await this.getTickerPrice(
         this.ticker,
@@ -1263,6 +1375,9 @@ export default defineComponent({
           ),
           api.get(`ticker/${this.ticker}/frequency`),
           api.get(`ticker/${this.ticker}/dailyChange`),
+          api.get(
+            `ticker/${this.ticker}/${this.store.selectedPortfolio}/dividendYield`
+          ),
         ])
         .then(
           axios.spread(async (...responses) => {
@@ -1276,6 +1391,7 @@ export default defineComponent({
             this.tickerAveragePrice = responses[3].data;
             this.tickerFrequency = responses[4].data;
             this.dailyChange = responses[5].data;
+            this.tickerDividendYield = responses[6].data;
           })
         )
         .catch((err: AxiosError) => {
@@ -1474,17 +1590,22 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.ticker = useRoute().params.ticker as string;
-    if (this.store.selectedPortfolio !== 'All Portfolios')
-      this.newTransactionPortfolio =
-        this.store.selectedPortfolio === 'undefined'
-          ? 'Portfolio'
-          : this.store.selectedPortfolio;
-    else this.newTransactionPortfolio = this.store.portfolios[0];
-    this.runOnLoad();
-    bus.on('updateTickerPage', this.runOnLoad);
-    bus.on('changedPortfolio', this.runOnLoad);
-    bus.on('changedSettings', this.runOnLoad);
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      this.ticker = useRoute().params.ticker as string;
+      if (this.store.selectedPortfolio !== 'All Portfolios')
+        this.newTransactionPortfolio =
+          this.store.selectedPortfolio === 'undefined'
+            ? 'Portfolio'
+            : this.store.selectedPortfolio;
+      else this.newTransactionPortfolio = this.store.portfolios[0];
+      this.runOnLoad();
+      bus.on('updateTickerPage', this.runOnLoad);
+      bus.on('changedPortfolio', this.runOnLoad);
+      bus.on('changedSettings', this.runOnLoad);
+    }
   },
   unmounted() {
     bus.off('updateTickerPage', this.runOnLoad);
@@ -1492,6 +1613,11 @@ export default defineComponent({
     bus.off('changedSettings', this.runOnLoad);
   },
   computed: {
+    getPortfoliosList(): string[] {
+      return this.store.portfolios.filter(
+        (item: string) => item !== this.store.selectedPortfolio
+      );
+    },
     getTickerDataTooltip(): string {
       let notes: string;
       if (!this.tickerUserData.notes) {
@@ -1503,7 +1629,7 @@ export default defineComponent({
       if (!this.tickerUserData?.tax) {
         tax = 'Tax: N/A, using default';
       } else {
-        tax = `Tax: ${filters.formatToPercentage(this.tickerUserData.tax)} `;
+        tax = `Tax: ${filters.formatToPercentage(this.tickerUserData.tax)}`;
       }
       let averagePrice: string;
       if (this.tickerAveragePrice === 0) {
@@ -1513,9 +1639,19 @@ export default defineComponent({
           this.tickerAveragePrice
         )}`;
       }
+      let divYield: string;
+      if (this.tickerDividendYield === 0) {
+        divYield = '';
+      } else {
+        divYield = `Dividend Yield: ${filters.formatToPercentage(
+          this.tickerDividendYield
+        )}`;
+      }
       let tooltip = `${notes} <br/> ${tax}<br/> Frequency: ${
         this.tickerFrequency
-      }<br/>${averagePrice ? averagePrice : ''}`;
+      }${averagePrice ? '<br/>' + averagePrice : ''}${
+        divYield ? '<br/>' + divYield : ''
+      }`;
       return tooltip;
     },
     dailyChangePercentage(): number {

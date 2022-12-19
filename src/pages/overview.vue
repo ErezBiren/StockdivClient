@@ -66,7 +66,7 @@
               :src="getTickerIcon(index)"
               style="height: 32px; width: 32px"
             />
-            <q-tooltip
+            <q-tooltip class="bg-indigo"
               >Next Dividend:
               {{
                 filters.formatToCurrency(nextDivTickersAmount[index])
@@ -220,7 +220,7 @@
     <q-page-sticky position="top">
       <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
         <div class="text-h5 row no-wrap justify-center">
-          {{ store.selectedPortfolio }}<q-separator vertical class="q-mx-md" />
+          {{ store.selectedPortfolio }}<q-space />
           <q-icon
             color="blue"
             name="account_balance_wallet"
@@ -235,8 +235,38 @@
             class="cursor-pointer q-my-xs q-ml-sm"
             @click="gotoScreener()"
           >
-            <q-tooltip class="bg-indigo">Show screener</q-tooltip>
-          </q-icon>
+            <q-tooltip class="bg-indigo">Show screener</q-tooltip> </q-icon
+          ><q-separator vertical />
+          <q-icon size="xs" name="more_vert" class="q-mt-sm cursor-pointer">
+            <q-menu fit anchor="bottom left" self="top left" auto-close>
+              <q-list bordered dense separator>
+                <q-item clickable v-ripple @click="renamePortfolio()">
+                  <q-item-section avatar>
+                    <q-icon
+                      size="sm"
+                      color="primary"
+                      name="drive_file_rename_outline"
+                    />
+                  </q-item-section>
+                  <q-item-section>Rename portfolio</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  @click="deletePortfolio()"
+                  v-if="
+                    store.portfolios.length > 2 &&
+                    store.selectedPortfolio !== 'All Portfolios'
+                  "
+                >
+                  <q-item-section avatar>
+                    <q-icon size="sm" color="primary" name="delete" />
+                  </q-item-section>
+                  <q-item-section>Delete portfolio</q-item-section>
+                </q-item></q-list
+              ></q-menu
+            ></q-icon
+          >
         </div>
         <q-separator />
         <div :class="getMarketValueColor">
@@ -245,11 +275,17 @@
             :name="getArrow"
           />{{ filters.formatToPercentage(plPercentage) }})
         </div>
-        <div :class="getDailyChangeColor">
-          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
-            class="q-mr-xs"
-            :name="getDailyArrow"
-          />{{ filters.formatToPercentage(dailyChangePercentage) }})
+        <div class="row no-wrap">
+          <div :class="getDailyChangeColor">
+            Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+              class="q-mr-xs"
+              :name="getDailyArrow"
+            />{{ filters.formatToPercentage(dailyChangePercentage) }})
+          </div>
+          <q-separator vertical class="q-mx-xs" />
+          Yield/YOC:
+          {{ filters.formatToPercentage(getPortfolioDivYield) }} /
+          {{ filters.formatToPercentage(getPortfolioYOC) }}
         </div>
       </div>
       <q-inner-loading :showing="marketValueLoading || dividendsInfoLoading">
@@ -264,7 +300,7 @@ import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
 import { IDiversification } from 'src/utils/interfaces/IDiversification';
 import { IPriceAndDate } from 'src/utils/interfaces/IPriceAndDate';
-import { showAPIError, bus } from 'src/utils/utils';
+import { showAPIError, bus, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { stockdivStore } from '../stores/stockdivStore';
 import { filters } from '../utils/utils';
@@ -504,6 +540,7 @@ export default defineComponent({
       portfolioMarketValue,
       portfolioInvested,
       dividendsSoFar,
+      portfolioLastTotalDividend: ref<number>(0),
       nextDividendInfo: ref<string>(''),
       nextDivTickers: ref<string[]>([]),
       nextDivTickersLogos: ref<string[]>([]),
@@ -1037,6 +1074,66 @@ export default defineComponent({
     };
   },
   methods: {
+    deletePortfolio() {
+      this.$q
+        .dialog({
+          title: 'Delete a portfolio',
+          message: 'Are you sure?',
+          position: 'bottom',
+          cancel: true,
+        })
+        .onOk(() => {
+          this.marketValueLoading = true;
+          api
+            .delete(`portfolio/${this.store.selectedPortfolio}`)
+            .then((response) => {
+              if (response.data.error) {
+                showNotification(response.data.error);
+              } else {
+                bus.emit('transactionChange');
+              }
+            })
+            .catch((err) => {
+              showAPIError(err);
+            })
+            .finally(() => {
+              this.marketValueLoading = false;
+            });
+        });
+    },
+    renamePortfolio() {
+      this.$q
+        .dialog({
+          position: 'bottom',
+          title: 'Rename portfolio',
+          message: 'Enter portfolio name',
+          prompt: {
+            model: '',
+            isValid: (val: string) =>
+              val.length > 0 && val !== 'All Portfolios',
+          },
+        })
+        .onOk((newPortfolio: string) => {
+          this.marketValueLoading = true;
+          api
+            .patch(
+              `portfolio/${this.store.selectedPortfolio}/rename/${newPortfolio}`
+            )
+            .then((response) => {
+              if (response.data.error) {
+                showNotification(response.data.error);
+              } else {
+                bus.emit('transactionChange');
+              }
+            })
+            .catch((err) => {
+              showAPIError(err);
+            })
+            .finally(() => {
+              this.marketValueLoading = false;
+            });
+        });
+    },
     toggleShowDividends() {
       if (this.showDivs) this.timelineItemsToShow = this.timelineItems;
       else
@@ -1082,6 +1179,9 @@ export default defineComponent({
           api.get(`portfolio/${this.store.selectedPortfolio}/marketValue`),
           api.get(`portfolio/${this.store.selectedPortfolio}/invested`),
           api.get(`portfolio/${this.store.selectedPortfolio}/dailyChange`),
+          api.get(
+            `portfolio/${this.store.selectedPortfolio}/lastTotalDividend`
+          ),
         ])
         .then(
           axios.spread((...responses) => {
@@ -1098,6 +1198,7 @@ export default defineComponent({
               this.portfolioMarketValue -
               this.portfolioInvested +
               this.dividendsSoFar;
+            this.portfolioLastTotalDividend = responses[3].data;
           })
         )
         .catch((err: AxiosError) => {
@@ -1354,6 +1455,16 @@ export default defineComponent({
     },
   },
   computed: {
+    getPortfolioDivYield(): number {
+      return this.portfolioMarketValue === 0
+        ? 0
+        : (this.portfolioLastTotalDividend / this.portfolioMarketValue) * 100;
+    },
+    getPortfolioYOC(): number {
+      return this.portfolioInvested === 0
+        ? 0
+        : (this.portfolioLastTotalDividend / this.portfolioInvested) * 100;
+    },
     getDividendAlertsIconColor(): string {
       return this.store.dividendAlerts.length === 0 ||
         this.store.dividendAlerts.filter(
@@ -1413,9 +1524,14 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.runWhenHasTransactions();
-    bus.on('changedPortfolio', this.runWhenHasTransactions);
-    bus.on('changedSettings', this.runWhenHasTransactions);
+    if (this.store.token === '') {
+      showNotification('You will need to re-login');
+      this.router.push('/');
+    } else {
+      this.runWhenHasTransactions();
+      bus.on('changedPortfolio', this.runWhenHasTransactions);
+      bus.on('changedSettings', this.runWhenHasTransactions);
+    }
   },
   unmounted() {
     bus.off('changedPortfolio', this.runWhenHasTransactions);

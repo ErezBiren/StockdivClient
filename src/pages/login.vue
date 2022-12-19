@@ -49,14 +49,19 @@
               />
             </template>
           </q-input>
-
-          <q-toggle
-            v-model="newUser"
-            color="primary"
-            keep-color
-            label="New User"
-            @click="focusRePassword()"
-          />
+          <div class="row no-wrap">
+            <q-toggle
+              v-model="newUser"
+              color="primary"
+              keep-color
+              label="New User"
+              @click="focusRePassword()"
+            />
+            <q-space />
+            <div class="cursor-pointer text-caption" @click="forgotPassword">
+              Forgot?
+            </div>
+          </div>
           <q-input
             v-model="confirmationCode"
             type="text"
@@ -76,17 +81,18 @@
             />
           </div>
 
-          <div class="row q-my-sm">
-            <div class="cursor-pointer q-mx-sm">
-              <a target="_blank" @click="openPrivacyPolicyDialog"
-                >Privacy policy</a
-              >
+          <div class="row no-wrap q-my-sm">
+            <div
+              class="cursor-pointer q-mx-sm"
+              @click="openPrivacyPolicyDialog"
+            >
+              Privacy policy
             </div>
-            <div class="cursor-pointer q-mx-sm">
-              <a target="_blank" @click="openDisclaimerDialog">Disclaimer</a>
+            <div class="cursor-pointer q-mx-sm" @click="openDisclaimerDialog">
+              Disclaimer
             </div>
-            <div class="cursor-pointer q-mx-sm">
-              <a target="_blank" @click="openWhyEmailDialog"> Why email? </a>
+            <div class="cursor-pointer q-mx-sm" @click="openWhyEmailDialog">
+              Why email?
             </div>
           </div>
         </q-form>
@@ -132,10 +138,56 @@ export default defineComponent({
       codeSent: ref(false),
       disableLetMeIn: ref<boolean>(false),
       store,
+      forgotPasswordMode: ref<boolean>(false),
       confirmationCodeRef: ref<QInput>(),
     };
   },
   methods: {
+    processForgotPassword(password: string) {
+      this.disableLetMeIn = true;
+      api
+        .post('user/forgotPassword', {
+          email: this.email,
+          password: password,
+          confirmationCode: this.codeSent ? this.confirmationCode : undefined,
+        })
+        .then((response) => {
+          if (response.data.result) {
+            if (!this.confirmationCode) {
+              this.codeSent = true;
+              this.forgotPasswordMode = true;
+              setTimeout(() => {
+                this.confirmationCodeRef?.focus();
+              }, 500);
+            } else {
+              this.codeSent = false;
+              this.password = password;
+              this.forgotPasswordMode = false;
+              this.letMeIn();
+            }
+          } else {
+            showNotification(
+              response.data.error
+                ? response.data.error
+                : 'Oops, there was a problem'
+            );
+          }
+        })
+        .catch((err) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.disableLetMeIn = false;
+        });
+    },
+    forgotPassword() {
+      if (!validateEmail(this.email)) {
+        showNotification('Invalid email');
+        if (this.refEmail) this.refEmail.focus();
+      } else {
+        this.processForgotPassword('xxx');
+      }
+    },
     openDisclaimerDialog() {
       this.$q.dialog({
         title: 'StockDiv',
@@ -168,49 +220,62 @@ export default defineComponent({
       }, 250);
     },
     letMeIn() {
-      if (!validateEmail(this.email)) {
+      if (this.forgotPasswordMode) {
+        this.$q
+          .dialog({
+            position: 'bottom',
+            title: 'Change password',
+            message: 'Your new password',
+            prompt: {
+              model: '',
+              isValid: (val: string) => val.length > 7,
+              type: 'password',
+            },
+          })
+          .onOk((newPassword: string) => {
+            this.processForgotPassword(newPassword);
+          });
+      } else if (!validateEmail(this.email)) {
         showNotification('Invalid email');
-        return;
       } else if (this.password.length < 8) {
         showNotification('Password must have at least 8 characters');
-        return;
       } else if (this.newUser && this.password !== this.rePassword) {
         showNotification('Passwords do not match');
-        return;
-      }
-      const command = this.codeSent || !this.newUser ? 'login' : 'register';
-      this.disableLetMeIn = true;
-      api
-        .post(`user/${command}`, {
-          email: this.email,
-          password: this.password,
-          confirmationCode: this.codeSent ? this.confirmationCode : undefined,
-        })
-        .then((response) => {
-          if (response.data.result || response.data.token) {
-            if (response.data.result) {
-              this.codeSent = true;
-              setTimeout(() => {
-                this.confirmationCodeRef?.focus();
-              }, 500);
+      } else {
+        const command = this.codeSent || !this.newUser ? 'login' : 'register';
+        this.disableLetMeIn = true;
+        api
+          .post(`user/${command}`, {
+            email: this.email,
+            password: this.password,
+            confirmationCode: this.codeSent ? this.confirmationCode : undefined,
+          })
+          .then((response) => {
+            if (response.data.result || response.data.token) {
+              if (response.data.result) {
+                this.codeSent = true;
+                setTimeout(() => {
+                  this.confirmationCodeRef?.focus();
+                }, 500);
+              } else {
+                this.store.token = response.data.token;
+                bus.emit('transactionChange');
+              }
             } else {
-              this.store.token = response.data.token;
-              bus.emit('transactionChange');
+              showNotification(
+                response.data.error
+                  ? response.data.error
+                  : 'Oops, there was a problem'
+              );
             }
-          } else {
-            showNotification(
-              response.data.error
-                ? response.data.error
-                : 'Oops, there was a problem'
-            );
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        })
-        .finally(() => {
-          this.disableLetMeIn = false;
-        });
+          })
+          .catch((err) => {
+            showAPIError(err);
+          })
+          .finally(() => {
+            this.disableLetMeIn = false;
+          });
+      }
     },
   },
   mounted() {
