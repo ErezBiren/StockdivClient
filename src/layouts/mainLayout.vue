@@ -82,11 +82,12 @@
               hint="Search ticker/name"
               ref="searchTickerInput"
               dense
+              input-class="text-uppercase"
               class="q-mr-sm"
               type="search"
-              mask="AAAAAAAAAA"
               v-model="dataToSearch"
               @keyup="triggerSearch"
+              @keydown="searchKeyDown($event)"
               ><q-tooltip
                 >Enter 3 chars minimum to see available tickers</q-tooltip
               >
@@ -413,6 +414,11 @@ export default defineComponent({
     };
   },
   methods: {
+    searchKeyDown(e: KeyboardEvent) {
+      if (/[^A-Za-z&]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    },
     sendFeedback() {
       this.sendingFeedback = true;
       api
@@ -601,7 +607,9 @@ export default defineComponent({
       if (this.dataToSearch === '') return;
       this.showSearchResultsMenu = false;
       api
-        .get(`ticker/search?searchText=${this.dataToSearch}`)
+        .get(
+          `ticker/search?searchText=${this.dataToSearch.replace('&', '%26')}`
+        )
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
