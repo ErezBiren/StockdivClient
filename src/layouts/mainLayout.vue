@@ -245,7 +245,7 @@
         ><q-img :src="'logo.png'" class="logo" />
         <div class="q-mt-sm">Settings</div>
         <q-space />
-        <div class="text-subtitle2">3.2.0</div></q-card-section
+        <div class="text-subtitle2">3.2.1</div></q-card-section
       >
       <div class="text-center q-mx-sm" style="font-size: 12px">
         Click
@@ -257,70 +257,45 @@
         <q-input
           type="text"
           dense
+          class="q-mx-sm"
           v-model="userNameEdit"
           hint="Your name"
-        /><q-icon
-          name="edit"
-          size="sm"
-          @click="setUserName()"
-          class="cursor-pointer q-mt-sm"
-          ><q-tooltip class="bg-indigo">Update your name</q-tooltip></q-icon
-        >
-      </q-card-section>
-      <q-separator />
-      <q-card-section class="row no-wrap">
-        <q-select
+          :rules="[(val) => (val && val !== '') || 'Name is missing']"
+        /><q-select
           v-model="dateFormat"
           dense
+          class="q-mx-sm"
           :options="dateFormatOptions"
           hint="Date format"
         />
-        <q-icon
-          name="edit"
-          size="sm"
-          @click="saveSettings('dateFormat', dateFormat)"
-          class="cursor-pointer q-mt-sm"
-          ><q-tooltip class="bg-indigo">Save date format</q-tooltip></q-icon
-        >
       </q-card-section>
-      <q-separator />
+
       <q-card-section class="row no-wrap">
         <q-input
           v-model.number="defaultTax"
           type="number"
           dense
+          class="q-mx-sm"
           step="0.01"
           prefix="%"
+          style="width: 70px"
           hint="Default Tax"
-          :rules="[(val) => (val && val >= 0) || 'Default tax is missing']"
+          :rules="[
+            (val) =>
+              (val && val >= 0 && val <= 100) || 'Default tax is invalid',
+          ]"
         />
-        <q-icon
-          name="edit"
-          size="sm"
-          @click="saveSettings('defaultTax', defaultTax)"
-          class="cursor-pointer q-mt-sm"
-          ><q-tooltip class="bg-indigo">Save default tax</q-tooltip></q-icon
-        >
-      </q-card-section>
-      <q-separator />
-      <q-card-section class="row no-wrap">
         <q-input
           v-model.number="decimalDigits"
           type="number"
           dense
+          style="width: 80px"
+          class="q-mx-sm"
           hint="Decimal Digits"
           :rules="[(val) => (val && val >= 0) || 'Decimal Digits is missing']"
         />
-        <q-icon
-          name="edit"
-          size="sm"
-          @click="saveSettings('decimalDigits', decimalDigits)"
-          class="cursor-pointer q-mt-sm"
-          ><q-tooltip class="bg-indigo">Save decimal digits</q-tooltip></q-icon
-        >
       </q-card-section>
       <q-separator />
-
       <q-card-actions align="right">
         <q-icon
           name="password"
@@ -346,6 +321,17 @@
           @click="showContactUsWindow()"
           ><q-tooltip class="bg-indigo">Contact</q-tooltip></q-icon
         >
+        <q-separator vertical />
+        <q-icon
+          name="done"
+          color="primary"
+          flat
+          @click="saveSettings()"
+          size="sm"
+          class="cursor-pointer"
+        >
+          <q-tooltip class="bg-indigo">Save</q-tooltip>
+        </q-icon>
       </q-card-actions>
       <q-separator />
       <q-card-section
@@ -534,27 +520,36 @@ export default defineComponent({
     gotoDonate() {
       window.open('https://www.paypal.me/StockDiv', '_blank');
     },
-    saveSettings(field: string, value: string | number) {
+    saveSettings() {
+      if (!this.userNameEdit) return;
       if (!this.defaultTax) this.defaultTax = 0;
       if (!this.decimalDigits) this.decimalDigits = 2;
       this.savingSettings = true;
-      api
-        .patch('user/settings', {
-          field: field,
-          value: value,
-        })
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            this.showSettingsPopup = false;
-            this.store.settings.defaultTax = this.defaultTax;
-            this.store.settings.dateFormat = this.dateFormat;
-            this.store.settings.decimalDigits = this.decimalDigits;
-            bus.emit('changedSettings');
-            showNotification('Settings were successfully saved');
-          }
-        })
+      axios
+        .all([
+          api.patch('user/settings', {
+            fields: ['dateFormat', 'decimalDigits', 'defaultTax'],
+            values: [this.dateFormat, this.decimalDigits, this.defaultTax],
+          }),
+          api.patch('user/name', { name: this.userNameEdit }),
+        ])
+        .then(
+          axios.spread(async (...responses) => {
+            if (responses[0].data.error) {
+              showNotification(responses[0].data.error);
+            } else if (responses[1].data.error) {
+              showNotification(responses[1].data.error);
+            } else {
+              this.showSettingsPopup = false;
+              this.store.settings.defaultTax = this.defaultTax;
+              this.store.settings.dateFormat = this.dateFormat;
+              this.store.settings.decimalDigits = this.decimalDigits;
+              this.userName = this.userNameEdit;
+              bus.emit('changedSettings');
+              showNotification('Settings were saved successfully');
+            }
+          })
+        )
         .catch((err) => {
           showAPIError(err);
         })
@@ -767,7 +762,7 @@ export default defineComponent({
     importTransactions(transactions: ITransactionData[]) {
       const notification = setTimeout(() => {
         showNotification(
-          'You have many transactions, it might take a bit longer than expected...'
+          'You have many transactions, loading may take longer than expected...'
         );
       }, 20000);
       api
@@ -804,22 +799,6 @@ export default defineComponent({
       this.defaultTax = this.store.settings.defaultTax;
       this.decimalDigits = this.store.settings.decimalDigits;
       this.showSettingsPopup = true;
-    },
-    setUserName() {
-      if (this.userName === this.userNameEdit) return;
-      api
-        .patch('user/name', { name: this.userNameEdit })
-        .then((response) => {
-          if (response.data.error) {
-            showNotification(response.data.error);
-          } else {
-            showNotification('Your name was updated');
-            this.userName = this.userNameEdit;
-          }
-        })
-        .catch((err) => {
-          showAPIError(err);
-        });
     },
     runOnLoginSuccess() {
       this.loginLoading = true;

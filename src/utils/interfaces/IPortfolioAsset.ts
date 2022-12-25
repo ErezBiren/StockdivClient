@@ -25,5 +25,6 @@ export interface IPortfolioAsset {
   lastPayDay: string;
   dividendAmount: number;
   lastTotalDividend: number;
-  portion: number;
+  mvPortion: number;
+  investedPortion: number;
 }

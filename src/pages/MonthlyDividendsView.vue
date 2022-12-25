@@ -38,9 +38,29 @@
         </q-calendar-month>
       </q-card-section>
       <q-page-sticky position="top">
-        <div class="row q-pa-sm bg-white shadow-8">
+        <div class="row no-wrap q-pa-sm bg-white shadow-8">
+          <q-btn
+            dense
+            flat
+            :disabled="canBrowsePrev"
+            icon="arrow_back_ios"
+            class="q-mt-xs cursor-pointer"
+            @click="browseMonth(false)"
+            size="xs"
+            ><q-tooltip class="bg-indigo">Previous month</q-tooltip></q-btn
+          ><q-separator vertical class="q-mx-sm" />
           <q-toggle dense v-model="showEx" label="Ex" class="q-mr-md" />
           <q-toggle dense v-model="showPay" label="Pay" />
+          <q-separator vertical class="q-mx-sm" /><q-btn
+            dense
+            flat
+            icon="arrow_forward_ios"
+            size="xs"
+            :disabled="canBrowseNext"
+            @click="browseMonth(true)"
+            class="q-mt-xs cursor-pointer"
+            ><q-tooltip class="bg-indigo">Next month</q-tooltip></q-btn
+          >
         </div>
       </q-page-sticky>
 
@@ -71,12 +91,11 @@ export default defineComponent({
   components: {
     QCalendarMonth,
   },
-  setup() {
-    let month = 0;
+  setup() {    
     const store = stockdivStore();
     const router = useRouter();
     return {
-      month,
+      month: ref<number>(0),
       router,
       store,
       showEx: ref<boolean>(true),
@@ -119,16 +138,26 @@ export default defineComponent({
           this.monthlyViewLoading = false;
         });
     },
+    browseMonth(next: boolean) {
+      this.month += next ? 1 : -1;
+      this.router.push({
+        path: `/monthlyDividendsView/${new Date(
+          Date.parse((this.month+1) + ' 1, 2022')
+        ).toLocaleString('en-us', {
+          month: 'long',
+        })}`,
+      });
+    },
   },
   mounted() {
     if (this.store.token === '') {
       showNotification('You will need to re-login');
       this.router.push('/');
     } else {
-      this.month =
-        new Date(Date.parse(useRoute().params.month + ' 1, 2022')).getMonth() +
-        1;
-      this.selectedDate = `${new Date().getFullYear()}-${this.month}-01`;
+      this.month = new Date(
+        Date.parse(useRoute().params.month + ' 1, 2022')
+      ).getMonth();
+      this.selectedDate = `${new Date().getFullYear()}-${this.month + 1}-01`;
       this.getMonthEvents();
       bus.on('changedPortfolio', this.getMonthEvents);
       bus.on('changedSettings', this.getMonthEvents);
@@ -139,6 +168,12 @@ export default defineComponent({
     bus.off('changedSettings', this.getMonthEvents);
   },
   computed: {
+    canBrowseNext(): boolean {
+      return this.month === 11;
+    },
+    canBrowsePrev(): boolean {
+      return this.month === 0;
+    },
     eventsMap() {
       const map: { [key: string]: IMonthViewEvent[] } = {};
       if (this.events.length > 0) {

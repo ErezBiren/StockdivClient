@@ -12,6 +12,12 @@ export const showNotification = (what: string) => {
   });
 };
 
+export const getRangeColor = (value: number): string => {
+  if (value > 1) value = 1;
+  const hue = ((1 - value) * 120).toString(10);
+  return ['hsl(', hue, ',100%,50%)'].join('');
+}
+
 export const validateEmail = (email: string) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
@@ -60,6 +66,9 @@ export const filters = {
   },
   formatToDate(value: string): string {
     return date.formatDate(value, store.settings.dateFormat);
+  },
+  formatToNumber(value: number): string {
+    return `${value.toFixed(2)}`;
   },
 };
 

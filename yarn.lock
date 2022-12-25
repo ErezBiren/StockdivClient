@@ -2437,10 +2437,10 @@
     "browserslist" "^4.21.0"
     "semver" "7.0.0"
 
-"core-js@^3.26.1", "core-js@^3.6.5":
-  "integrity" "sha512-21491RRQVzUn0GGM9Z1Jrpr6PNPxPi+Za8OM9q4tksTSnlbXXGKK1nXNg/QvwFYettXvSX6zWKCtHHfjN4puyA=="
-  "resolved" "https://registry.npmjs.org/core-js/-/core-js-3.26.1.tgz"
-  "version" "3.26.1"
+"core-js@^3.27.0", "core-js@^3.6.5":
+  "integrity" "sha512-wY6cKosevs430KRkHUIsvepDXHGjlXOZO3hYXNyqpD6JvB0X28aXyv0t1Y1vZMwE7SoKmtfa6IASHCPN52FwBQ=="
+  "resolved" "https://registry.npmjs.org/core-js/-/core-js-3.27.0.tgz"
+  "version" "3.27.0"
 
 "core-util-is@~1.0.0":
   "integrity" "sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ=="
@@ -4917,10 +4917,10 @@
   dependencies:
     "side-channel" "^1.0.4"
 
-"quasar@^2.11.1":
-  "integrity" "sha512-3whiJaOXbectd2R6Vfjr/vHKeY92zdDpx41zfZ5vrG+Yx16Q76euUQsdKlYr1PD7q33yvHvjegxuILgKJg5GqA=="
-  "resolved" "https://registry.npmjs.org/quasar/-/quasar-2.11.1.tgz"
-  "version" "2.11.1"
+"quasar@^2.11.2":
+  "integrity" "sha512-4u1REwVqJ7KPB7Mo/fxR6P4c5CQ1F7zjW/w4Cnb5OKnWhZDDSRcIWK+kTUZoFZ7/lGlac/0iFQXyrIc0noHhiw=="
+  "resolved" "https://registry.npmjs.org/quasar/-/quasar-2.11.2.tgz"
+  "version" "2.11.2"
 
 "queue-microtask@^1.2.2":
   "integrity" "sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A=="

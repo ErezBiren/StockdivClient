@@ -1,6 +1,21 @@
 <template>
   <q-page style="padding-top: 50px">
     <div v-if="viewMode === ViewModeEnum.TABLE">
+      <q-select
+        class="absolute-top-right q-mt-md q-mr-lg"
+        dense
+        options-dense
+        :display-value="$q.lang.table.columns"
+        style="z-index: 2; width: 150px"
+        v-model="visibleColumns"
+        multiple
+        emit-value
+        map-options
+        option-value="name"
+        :options="portfolioColumns"
+        transition-show="jump-up"
+        transition-hide="jump-up"
+      />
       <q-table
         dense
         bordered
@@ -138,7 +153,7 @@
               :props="props"
               :class="soldAllColor(props.row.shares)"
             >
-              {{ props.row.dailyChange }}</q-td
+              {{ filters.formatToCurrency(props.row.dailyChange) }}</q-td
             >
             <q-td
               key="dailyChangePercent"
@@ -185,11 +200,18 @@
               {{ filters.formatToCurrency(props.row.lastTotalDividend) }}</q-td
             >
             <q-td
-              key="portion"
+              key="mvPortion"
               :props="props"
               :class="soldAllColor(props.row.shares)"
             >
-              {{ filters.formatToPercentage(props.row.portion) }}</q-td
+              {{ filters.formatToPercentage(props.row.mvPortion) }}</q-td
+            >
+            <q-td
+              key="investedPortion"
+              :props="props"
+              :class="soldAllColor(props.row.shares)"
+            >
+              {{ filters.formatToPercentage(props.row.investedPortion) }}</q-td
             >
           </q-tr>
         </template>
@@ -294,9 +316,10 @@
             <q-separator vertical class="q-mx-md" />
             <div
               class="col-6 text-left cursor-pointer"
-              @click="sortAssets(SortByEnum.PORTION)"
+              @click="sortAssets(SortByEnum.MVPORTION)"
             >
-              <b>Portion:</b> {{ filters.formatToPercentage(item.portion) }}
+              <b>Portion (mv):</b>
+              {{ filters.formatToPercentage(item.mvPortion) }}
             </div>
           </div>
 
@@ -332,12 +355,29 @@
               {{ filters.formatToCurrency(item.lastTotalDividend) }}
             </div>
           </div>
+          <div class="row no-wrap justify-center">
+            <div
+              class="col-6 text-right cursor-pointer"
+              @click="sortAssets(SortByEnum.INVESTEDPORTION)"
+            >
+              <b>Portion (invested):</b>
+              {{ filters.formatToPercentage(item.investedPortion) }}
+            </div>
+            <q-separator vertical class="q-mx-md" />
+            <div class="col-6 text-left cursor-pointer">
+              <b> </b>
+            </div>
+          </div>
         </q-card-section>
       </q-card>
     </div>
     <q-page-sticky position="top">
       <div class="row q-pa-sm bg-white shadow-8">
-        {{ portfolioTable ? portfolioTable.filteredSortedRows.length : 0 }}
+        {{
+          portfolioTable
+            ? portfolioTable.filteredSortedRows.length
+            : portfolioAssets.length
+        }}
         assets&nbsp;
         <q-separator vertical /><q-icon
           size="xs"
@@ -409,7 +449,6 @@ export default defineComponent({
       },
       {
         name: 'name',
-        required: true,
         label: 'Name',
         align: 'left',
         field: (row: IPortfolioAsset) => row.name,
@@ -418,7 +457,6 @@ export default defineComponent({
       },
       {
         name: 'sector',
-        required: true,
         label: 'Sector',
         align: 'left',
         field: (row: IPortfolioAsset) => row.sector,
@@ -427,7 +465,6 @@ export default defineComponent({
       },
       {
         name: 'shares',
-        required: true,
         label: 'Shares',
         align: 'center',
         field: (row: IPortfolioAsset) => row.shares,
@@ -436,7 +473,6 @@ export default defineComponent({
       },
       {
         name: 'averagePrice',
-        required: true,
         label: 'Average Price',
         align: 'center',
         field: (row: IPortfolioAsset) => row.averagePrice,
@@ -445,7 +481,6 @@ export default defineComponent({
       },
       {
         name: 'sharePrice',
-        required: true,
         label: 'Share Price',
         align: 'center',
         field: (row: IPortfolioAsset) => row.sharePrice,
@@ -454,7 +489,6 @@ export default defineComponent({
       },
       {
         name: 'invested',
-        required: true,
         label: 'Invested',
         align: 'center',
         field: (row: IPortfolioAsset) => row.invested,
@@ -463,7 +497,6 @@ export default defineComponent({
       },
       {
         name: 'marketValue',
-        required: true,
         label: 'Market Value',
         align: 'center',
         field: (row: IPortfolioAsset) => row.marketValue,
@@ -472,7 +505,6 @@ export default defineComponent({
       },
       {
         name: 'income',
-        required: true,
         label: 'Income',
         align: 'center',
         field: (row: IPortfolioAsset) => row.income,
@@ -481,7 +513,6 @@ export default defineComponent({
       },
       {
         name: 'dividendYield',
-        required: true,
         label: 'Yield',
         align: 'center',
         field: (row: IPortfolioAsset) => row.dividendYield,
@@ -490,7 +521,6 @@ export default defineComponent({
       },
       {
         name: 'yoc',
-        required: true,
         label: 'YOC',
         align: 'center',
         field: (row: IPortfolioAsset) => row.yoc,
@@ -499,7 +529,6 @@ export default defineComponent({
       },
       {
         name: 'dividendFrequency',
-        required: true,
         label: 'Frequency',
         align: 'left',
         field: (row: IPortfolioAsset) => row.dividendFrequency,
@@ -508,7 +537,6 @@ export default defineComponent({
       },
       {
         name: 'profitLoss',
-        required: true,
         label: 'PL',
         align: 'center',
         field: (row: IPortfolioAsset) => row.profitLoss,
@@ -517,7 +545,6 @@ export default defineComponent({
       },
       {
         name: 'profitLossPercent',
-        required: true,
         label: 'PL%',
         align: 'center',
         field: (row: IPortfolioAsset) => row.profitLossPercent,
@@ -526,7 +553,6 @@ export default defineComponent({
       },
       {
         name: 'annualized',
-        required: true,
         label: 'Annualized',
         align: 'center',
         field: (row: IPortfolioAsset) => row.annualized,
@@ -535,7 +561,6 @@ export default defineComponent({
       },
       {
         name: 'dailyChange',
-        required: true,
         label: 'Change',
         align: 'center',
         field: (row: IPortfolioAsset) => row.dailyChange,
@@ -544,7 +569,6 @@ export default defineComponent({
       },
       {
         name: 'dailyChangePercent',
-        required: true,
         label: 'Change%',
         align: 'center',
         field: (row: IPortfolioAsset) => row.dailyChangePercent,
@@ -553,7 +577,6 @@ export default defineComponent({
       },
       {
         name: 'tax',
-        required: true,
         label: 'Tax',
         align: 'center',
         field: (row: IPortfolioAsset) => row.tax,
@@ -562,7 +585,6 @@ export default defineComponent({
       },
       {
         name: 'lastExDay',
-        required: true,
         label: 'Ex',
         align: 'left',
         field: (row: IPortfolioAsset) => row.lastExDay,
@@ -571,7 +593,6 @@ export default defineComponent({
       },
       {
         name: 'lastPayDay',
-        required: true,
         label: 'Pay',
         align: 'left',
         field: (row: IPortfolioAsset) => row.lastPayDay,
@@ -580,7 +601,6 @@ export default defineComponent({
       },
       {
         name: 'dividendAmount',
-        required: true,
         label: 'Dividend',
         align: 'center',
         field: (row: IPortfolioAsset) => row.dividendAmount,
@@ -589,7 +609,6 @@ export default defineComponent({
       },
       {
         name: 'lastTotalDividend',
-        required: true,
         label: 'Total',
         align: 'center',
         field: (row: IPortfolioAsset) => row.lastTotalDividend,
@@ -597,11 +616,18 @@ export default defineComponent({
         sortable: true,
       },
       {
-        name: 'portion',
-        required: true,
-        label: 'Portion%',
+        name: 'mvPortion',
+        label: 'Portion% (mv)',
         align: 'center',
-        field: (row: IPortfolioAsset) => row.portion,
+        field: (row: IPortfolioAsset) => row.mvPortion,
+        format: (val: number) => `${filters.formatToPercentage(val)}`,
+        sortable: true,
+      },
+      {
+        name: 'investedPortion',
+        label: 'Portion% (invested)',
+        align: 'center',
+        field: (row: IPortfolioAsset) => row.investedPortion,
         format: (val: number) => `${filters.formatToPercentage(val)}`,
         sortable: true,
       },
@@ -634,7 +660,8 @@ export default defineComponent({
         'lastPayDay',
         'dividendAmount',
         'lastTotalDividend',
-        'portion',
+        'mvPortion',
+        'investedPortion',
       ]),
       SortByEnum,
       portfolioTable: ref<QTable>(),
@@ -668,9 +695,18 @@ export default defineComponent({
         !this.filterClosePositions.showClose;
     },
     saveView() {
-      this.store.settings.portfolioView.sortBy = this.sortBy;
-      this.store.settings.portfolioView.sortDirection = this.sortDirection;
+      this.store.settings.portfolioView.sortBy =
+        this.viewMode === 0
+          ? this.store.settings.portfolioView.sortBy
+          : this.pagination.sortBy;
+      this.store.settings.portfolioView.sortDirection =
+        this.viewMode === 0
+          ? this.store.settings.portfolioView.sortDirection
+          : this.pagination.descending
+          ? SortDirectionEnum.DESC
+          : SortDirectionEnum.ASC;
       this.store.settings.portfolioView.mode = this.viewMode;
+      this.store.settings.portfolioView.visibleColumns = this.visibleColumns;
       let viewToSave: IViewModeSettings = {
         mode: this.viewMode,
         sortBy:
@@ -821,12 +857,21 @@ export default defineComponent({
           );
           break;
         }
-        case SortByEnum.PORTION: {
+        case SortByEnum.MVPORTION: {
           this.portfolioAssets.sort(
             (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
               this.sortDirection === SortDirectionEnum.ASC
-                ? pa1.portion - pa2.portion
-                : pa2.portion - pa1.portion
+                ? pa1.mvPortion - pa2.mvPortion
+                : pa2.mvPortion - pa1.mvPortion
+          );
+          break;
+        }
+        case SortByEnum.INVESTEDPORTION: {
+          this.portfolioAssets.sort(
+            (pa1: IPortfolioAsset, pa2: IPortfolioAsset) =>
+              this.sortDirection === SortDirectionEnum.ASC
+                ? pa1.investedPortion - pa2.investedPortion
+                : pa2.investedPortion - pa1.investedPortion
           );
           break;
         }
@@ -895,6 +940,7 @@ export default defineComponent({
     } else {
       this.viewMode =
         this.store.settings.portfolioView.mode || ViewModeEnum.CARD;
+      this.visibleColumns = this.store.settings.portfolioView.visibleColumns;
       this.getPortfolio();
       bus.on('changedPortfolio', this.getPortfolio);
       bus.on('changedSettings', this.getPortfolio);

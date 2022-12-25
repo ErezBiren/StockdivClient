@@ -7,7 +7,7 @@ export interface IScreenerTicker {
   sector: string;
   yearsIncrease: number;
   sharePrice: number;
-  dividendFrequency: keyof typeof DividendFrequencyEnum;
+  frequency: keyof typeof DividendFrequencyEnum;
   lastExDay: string;
   lastPayDay: string;
   dividendAmount: number;

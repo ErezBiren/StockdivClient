@@ -227,6 +227,23 @@
                 <q-item
                   clickable
                   v-ripple
+                  v-close-popup
+                  v-if="tickerInvested > 0"
+                  @click="closePosition()"
+                >
+                  <q-item-section avatar>
+                    <q-icon
+                      size="sm"
+                      color="primary"
+                      name="cancel_presentation"
+                    />
+                  </q-item-section>
+                  <q-item-section>Close position</q-item-section>
+                </q-item>
+
+                <q-item
+                  clickable
+                  v-ripple
                   v-if="
                     tickerInvested > 0 &&
                     store.selectedPortfolio !== 'All Portfolios'
@@ -276,7 +293,9 @@
           Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
             class="q-mr-xs"
             :name="getDailyArrow"
-          />{{ filters.formatToPercentage(dailyChangePercentage) }})
+          />{{ filters.formatToPercentage(dailyChangePercentage) }})<q-separator
+            vertical class="q-mx-sm"
+          /><div class="text-black">{{ tickerShares }} shares</div>
         </div>
       </div>
       <q-inner-loading :showing="tickerInfoLoading">
@@ -908,6 +927,7 @@ export default defineComponent({
       }),
       tickerDividendsSoFar,
       tickerInvested,
+      tickerShares: ref<number>(0),
       tickerMarketValue,
       investmentsChartSeries: ref<[{ data: number[] }]>([
         { data: [0, 0, 0, 0] },
@@ -1041,6 +1061,12 @@ export default defineComponent({
     };
   },
   methods: {
+    closePosition() {
+      this.newTransactionShares = -this.tickerShares;
+      this.newTransactionSharePrice = this.tickerPrice;
+      this.sharePriceChange();
+      this.addPurchaseDialogShow = true;
+    },
     handleStockDividend() {
       this.newTransactionSharePrice = 0.01;
       this.newTransactionTotal =
@@ -1550,24 +1576,20 @@ export default defineComponent({
           axios.spread((...responses) => {
             this.timelineItems = responses[0].data;
             let withTransactions = false;
-            if (this.store.settings.dateFormat !== 'YYYY-MM-DD') {
-              this.timelineItems.forEach(
-                (element: {
-                  title: string;
-                  content: string;
-                  transaction?: ITransactionData;
-                }) => {
+            this.timelineItems.forEach(
+              (element: {
+                title: string;
+                content: string;
+                transaction?: ITransactionData;
+              }) => {
+                if (this.store.settings.dateFormat !== 'YYYY-MM-DD')
                   element.title = filters.formatToDate(element.title);
-                  if (element.transaction) withTransactions = true;
+                if (element.transaction) {
+                  withTransactions = true;
+                  this.tickerShares += element.transaction.shares;
                 }
-              );
-            } else {
-              for (let i = 0; i < this.timelineItems.length; i++) {
-                if (!this.timelineItems[i].transaction) continue;
-                withTransactions = true;
-                break;
               }
-            }
+            );
             this.showDivs = !withTransactions;
             this.toggleShowDividends();
           })
@@ -1679,8 +1701,8 @@ export default defineComponent({
     },
     getDailyChangeColor(): string {
       return this.dailyChange < 0
-        ? 'text-subtitle2 text-red q-mt-sm'
-        : 'text-subtitle2 text-green q-mt-sm';
+        ? 'text-subtitle2 text-red q-mt-sm row no-wrap'
+        : 'text-subtitle2 text-green q-mt-sm row no-wrap';
     },
     getMarketValueColor(): string {
       return this.tickerPrice - this.tickerAveragePrice < 0
