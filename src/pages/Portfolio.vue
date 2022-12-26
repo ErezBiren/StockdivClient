@@ -215,6 +215,32 @@
             >
           </q-tr>
         </template>
+        <template v-slot:bottom-row="props">
+          <q-tr>
+            <q-td
+              v-for="col in props.cols"
+              :class="col.__thClass"
+              :key="col.name"
+            >
+              <template v-if="col.name === 'invested'">
+                {{ filters.formatToCurrency(investedTotal) }}
+              </template>
+              <template v-if="col.name === 'marketValue'">
+                {{ filters.formatToCurrency(mvTotal) }}
+              </template>
+              <template v-if="col.name === 'income'">
+                {{ filters.formatToCurrency(incomeTotal) }}
+              </template>
+              <template v-if="col.name === 'profitLoss'">
+                {{ filters.formatToCurrency(plTotal) }}
+              </template>
+              <template v-if="col.name === 'dailyChange'">
+                {{ filters.formatToCurrency(dcTotal) }}
+              </template>
+              <template v-else> </template>
+            </q-td>
+          </q-tr>
+        </template>
       </q-table>
     </div>
     <div v-if="viewMode === ViewModeEnum.CARD">
@@ -637,6 +663,7 @@ export default defineComponent({
       filters,
       router,
       store,
+      portfolioAssets: ref<IPortfolioAsset[]>([]),
       visibleColumns: ref<string[]>([
         'ticker',
         'name',
@@ -667,7 +694,6 @@ export default defineComponent({
       portfolioTable: ref<QTable>(),
       showSoldAll: ref<boolean>(false),
       portfolioLoading: ref<boolean>(false),
-      portfolioAssets: ref<IPortfolioAsset[]>([]),
       portfolioColumns,
       sortBy: ref<SortByEnum>(SortByEnum.NONE),
       sortDirection: ref<SortDirectionEnum>(SortDirectionEnum.DESC),
@@ -950,29 +976,55 @@ export default defineComponent({
     bus.off('changedPortfolio', this.getPortfolio);
     bus.off('changedSettings', this.getPortfolio);
   },
+  computed: {
+    investedTotal(): number {
+      return this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.invested,
+        0
+      );
+    },
+    mvTotal(): number {
+      return this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.marketValue,
+        0
+      );
+    },
+    incomeTotal(): number {
+      return this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.income,
+        0
+      );
+    },
+    plTotal(): number {
+      return this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.profitLoss,
+        0
+      );
+    },
+    dcTotal(): number {
+      return this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.dailyChange,
+        0
+      );
+    },
+  },
 });
 </script>
 
 <style>
 .my-sticky-header-column-table {
-  /* height or max-height is important */
   max-height: 1310px;
 }
 .my-sticky-header-column-table td:first-child {
-  /* bg color is important for td; just specify one */
   background-color: #cfdef5 !important;
 }
 .my-sticky-header-column-table tr th {
   position: sticky;
-  /* higher than z-index for td below */
   z-index: 2;
-  /* bg color is important; just specify one */
   background: #fff;
 }
 .my-sticky-header-column-table thead tr:last-child th {
-  /* height of all previous header rows */
   top: 48px;
-  /* highest z-index */
   z-index: 3;
 }
 .my-sticky-header-column-table thead tr:first-child th {
@@ -980,7 +1032,6 @@ export default defineComponent({
   z-index: 1;
 }
 .my-sticky-header-column-table tr:first-child th:first-child {
-  /* highest z-index */
   z-index: 3;
 }
 .my-sticky-header-column-table td:first-child {
@@ -990,5 +1041,11 @@ export default defineComponent({
 .my-sticky-header-column-table th:first-child {
   position: sticky;
   left: 0;
+}
+.my-sticky-header-column-table tbody tr:last-child td {
+  bottom: 0;
+  position: sticky;
+  z-index: 1;
+  background-color: lightblue;
 }
 </style>

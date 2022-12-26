@@ -1142,24 +1142,18 @@ export default defineComponent({
 </script>
 <style>
 .my-sticky-header-column-table {
-  /* height or max-height is important */
   max-height: 1310px;
 }
 .my-sticky-header-column-table td:first-child {
-  /* bg color is important for td; just specify one */
   background-color: #cfdef5 !important;
 }
 .my-sticky-header-column-table tr th {
   position: sticky;
-  /* higher than z-index for td below */
   z-index: 2;
-  /* bg color is important; just specify one */
   background: #fff;
 }
 .my-sticky-header-column-table thead tr:last-child th {
-  /* height of all previous header rows */
   top: 48px;
-  /* highest z-index */
   z-index: 3;
 }
 .my-sticky-header-column-table thead tr:first-child th {
@@ -1167,7 +1161,6 @@ export default defineComponent({
   z-index: 1;
 }
 .my-sticky-header-column-table tr:first-child th:first-child {
-  /* highest z-index */
   z-index: 3;
 }
 .my-sticky-header-column-table td:first-child {

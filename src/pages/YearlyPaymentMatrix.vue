@@ -354,7 +354,7 @@ table tfoot {
   position: sticky;
   bottom: 0;
   z-index: 1;
-  background: #e1f5fe !important;
+  background: lightblue !important;
   inset-block-end: -20px;
 }
 
