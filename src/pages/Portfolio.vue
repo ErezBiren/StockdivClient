@@ -1010,7 +1010,6 @@ export default defineComponent({
   },
 });
 </script>
-
 <style>
 .my-sticky-header-column-table {
   max-height: 1310px;
@@ -1042,10 +1041,10 @@ export default defineComponent({
   position: sticky;
   left: 0;
 }
-.my-sticky-header-column-table tbody tr:last-child td {
+.my-sticky-header-column-table tbody tr:last-child {
   bottom: 0;
   position: sticky;
   z-index: 1;
-  background-color: lightblue;
+  background-color: #cfdef5;
 }
 </style>

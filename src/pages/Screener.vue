@@ -27,8 +27,6 @@
         v-model:pagination="pagination"
         v-model:visible-columns="visibleColumns"
         :hide-bottom="true"
-        :rows-per-page-options="[0]"
-        virtual-scroll
       >
         <template v-slot:body="props">
           <q-tr :props="props">
@@ -148,6 +146,19 @@
                 filters.formatToPercentage(props.row.dailyChangePercent)
               }}</q-td
             >
+          </q-tr>
+        </template>
+        <template v-slot:bottom-row="props">
+          <q-tr>
+            <q-td
+              v-for="col in props.cols"
+              :class="col.__thClass"
+              :key="col.name"
+            >
+              <template>
+                {{}}
+              </template>
+            </q-td>
           </q-tr>
         </template>
       </q-table>
@@ -1087,7 +1098,7 @@ export default defineComponent({
     getScreener() {
       const notification = setTimeout(() => {
         showNotification(
-          'You have many tickers, loading may take a longer than expected...'
+          'You have many tickers, loading may take longer than expected...'
         );
       }, 20000);
 
@@ -1171,4 +1182,12 @@ export default defineComponent({
   position: sticky;
   left: 0;
 }
+.my-sticky-header-column-table tbody tr:last-child td {
+  bottom: 0;
+  position: sticky;
+  z-index: 0;
+  background-color: transparent;
+}
 </style>
+<!-- projection yearly
+dividends so far-->
