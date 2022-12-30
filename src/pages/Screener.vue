@@ -780,8 +780,8 @@ export default defineComponent({
       };
       api
         .patch('user/settings', {
-          field: 'screenerView',
-          value: viewToSave,
+          fields: ['screenerView'],
+          values: [viewToSave],
         })
         .then((response) => {
           if (response.data.error) {

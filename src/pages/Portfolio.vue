@@ -749,8 +749,8 @@ export default defineComponent({
       };
       api
         .patch('user/settings', {
-          field: 'portfolioView',
-          value: viewToSave,
+          fields: ['portfolioView'],
+          values: [viewToSave],
         })
         .then((response) => {
           if (response.data.error) {
