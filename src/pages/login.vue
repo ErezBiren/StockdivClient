@@ -14,6 +14,7 @@
             ref="refEmail"
             type="email"
             label="Email"
+            input-class="text-lowercase"
             class="q-my-sm"
           />
 
@@ -147,7 +148,7 @@ export default defineComponent({
       this.disableLetMeIn = true;
       api
         .post('user/forgotPassword', {
-          email: this.email,
+          email: this.email.toLowerCase(),
           password: password,
           confirmationCode: this.codeSent ? this.confirmationCode : undefined,
         })
@@ -246,7 +247,7 @@ export default defineComponent({
         this.disableLetMeIn = true;
         api
           .post(`user/${command}`, {
-            email: this.email,
+            email: this.email.toLowerCase(),
             password: this.password,
             confirmationCode: this.codeSent ? this.confirmationCode : undefined,
           })

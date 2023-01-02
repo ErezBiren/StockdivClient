@@ -12,7 +12,8 @@
               class="q-mr-sm"
               size="small"
               @click="gotoDonate()"
-            />
+              ><q-tooltip class="bg-indigo">Donating is caring :)</q-tooltip>
+            </q-btn>
             Hello {{ userName }}
             <q-icon
               color="blue"
@@ -245,7 +246,7 @@
         ><q-img :src="'logo.png'" class="logo" />
         <div class="q-mt-sm">Settings</div>
         <q-space />
-        <div class="text-subtitle2">3.2.1</div></q-card-section
+        <div class="text-subtitle2">3.2.2</div></q-card-section
       >
       <div class="text-center q-mx-sm" style="font-size: 12px">
         Click

@@ -1,6 +1,6 @@
 export interface ITickerUserData {
   portfolio: string;
   ticker: string;
-  tax: number;
+  tax: number | undefined;
   notes: string;
 }

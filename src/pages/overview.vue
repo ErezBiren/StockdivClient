@@ -1278,7 +1278,8 @@ export default defineComponent({
             this.averageIncrease5y = responses[0].data.averageIncrease5y;
             let incomeLastYear: number = responses[1].data;
             this.projectionChartSeries[0].data = [];
-            for (let i = 0; i < 12; i++) {
+            this.projectionChartSeries[0].data.push(incomeLastYear);
+            for (let i = 0; i < 11; i++) {
               this.projectionChartSeries[0].data.push(
                 incomeLastYear *
                   (1 +

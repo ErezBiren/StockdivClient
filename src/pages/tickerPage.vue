@@ -294,8 +294,10 @@
             class="q-mr-xs"
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})<q-separator
-            vertical class="q-mx-sm"
-          /><div class="text-black">{{ tickerShares }} shares</div>
+            vertical
+            class="q-mx-sm"
+          />
+          <div class="text-black">{{ tickerShares }} shares</div>
         </div>
       </div>
       <q-inner-loading :showing="tickerInfoLoading">
@@ -337,9 +339,6 @@
               dense
               step="0.01"
               hint="Tax"
-              :rules="[
-                (val) => (val.length !== 0 && val >= 0) || 'Tax is missing',
-              ]"
             /><q-space /><q-btn
               icon="done"
               color="primary"
@@ -508,6 +507,7 @@
             readonly
             hint="When"
             mask="####-##-##"
+            :rules="[(val) => (val && val !== '') || 'Invalid date']"
             v-model="newTransactionWhen"
           >
             <template v-slot:append>
@@ -864,7 +864,7 @@ export default defineComponent({
       }),
       tickerUserData: ref<ITickerUserData>({
         notes: '',
-        tax: 0,
+        tax: undefined,
         portfolio: '',
         ticker: '',
       }),
@@ -1307,7 +1307,7 @@ export default defineComponent({
             showNotification(response.data.error);
           } else {
             this.userDataDialogShow = false;
-            showNotification('Saved successfully');
+            showNotification('Properties were saved successfully');
             this.getTickerUserData();
           }
         })
@@ -1381,7 +1381,7 @@ export default defineComponent({
         .then((response) => {
           if (response.data.error) {
             showNotification(response.data.error);
-          } else {
+          } else if (response.data) {
             this.tickerUserData = response.data;
           }
         })

@@ -966,10 +966,10 @@
     "@babel/helper-validator-identifier" "^7.18.6"
     "to-fast-properties" "^2.0.0"
 
-"@eslint/eslintrc@^1.4.0":
-  "integrity" "sha512-7yfvXy6MWLgWSFsLhz5yH3iQ52St8cdUY6FoGieKkRDVxuxmrNuUetIuu6cmjNWwniUHiWXjxCr5tTXDrbYS5A=="
-  "resolved" "https://registry.npmjs.org/@eslint/eslintrc/-/eslintrc-1.4.0.tgz"
-  "version" "1.4.0"
+"@eslint/eslintrc@^1.4.1":
+  "integrity" "sha512-XXrH9Uarn0stsyldqDYq8r++mROmWRI1xKMXa640Bb//SY1+ECYX6VzT6Lcx5frD0V30XieqJ0oX9I2Xj5aoMA=="
+  "resolved" "https://registry.npmjs.org/@eslint/eslintrc/-/eslintrc-1.4.1.tgz"
+  "version" "1.4.1"
   dependencies:
     "ajv" "^6.12.4"
     "debug" "^4.3.2"
@@ -1189,10 +1189,10 @@
     "core-js" "^3.6.5"
     "core-js-compat" "^3.6.5"
 
-"@quasar/extras@^1.15.8":
-  "integrity" "sha512-UR6Snu7DSYdDOGqcNjUr0FJtKNfPn2Jc2hKTC+y/Y7Gf+vWu0RYUl49cguD33nn+wpbgs28+cvmjx7u3NNogoQ=="
-  "resolved" "https://registry.npmjs.org/@quasar/extras/-/extras-1.15.8.tgz"
-  "version" "1.15.8"
+"@quasar/extras@^1.15.9":
+  "integrity" "sha512-2y0KKTRol5FsqxhJH19pG5qU9ve+AUdPzQDSh/d7XxBZGJASOAcglKH/W1dCdChLJzyJDOJ4DmM2sxWQkosVWw=="
+  "resolved" "https://registry.npmjs.org/@quasar/extras/-/extras-1.15.9.tgz"
+  "version" "1.15.9"
 
 "@quasar/fastclick@1.1.5":
   "integrity" "sha512-p3JKgTjRlJ1YQXbqTw3Bsa4j0mQdt5dq+WfYvyb7MgKGdephHCKdR/kxA5PCTAmJanGJuDKqRdyGYX/hYN4KGw=="
@@ -2437,10 +2437,10 @@
     "browserslist" "^4.21.0"
     "semver" "7.0.0"
 
-"core-js@^3.27.0", "core-js@^3.6.5":
-  "integrity" "sha512-wY6cKosevs430KRkHUIsvepDXHGjlXOZO3hYXNyqpD6JvB0X28aXyv0t1Y1vZMwE7SoKmtfa6IASHCPN52FwBQ=="
-  "resolved" "https://registry.npmjs.org/core-js/-/core-js-3.27.0.tgz"
-  "version" "3.27.0"
+"core-js@^3.27.1", "core-js@^3.6.5":
+  "integrity" "sha512-GutwJLBChfGCpwwhbYoqfv03LAfmiz7e7D/BNxzeMxwQf10GRSzqiOjx7AmtEk+heiD/JWmBuyBPgFtx0Sg1ww=="
+  "resolved" "https://registry.npmjs.org/core-js/-/core-js-3.27.1.tgz"
+  "version" "3.27.1"
 
 "core-util-is@~1.0.0":
   "integrity" "sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ=="
@@ -2932,12 +2932,12 @@
   "resolved" "https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-3.3.0.tgz"
   "version" "3.3.0"
 
-"eslint@*", "eslint@^6.0.0 || ^7.0.0 || ^8.0.0", "eslint@^6.2.0 || ^7.0.0 || ^8.0.0", "eslint@^8.30.0", "eslint@>= 6", "eslint@>=5", "eslint@>=6.0.0", "eslint@>=7.0.0":
-  "integrity" "sha512-MGADB39QqYuzEGov+F/qb18r4i7DohCDOfatHaxI2iGlPuC65bwG2gxgO+7DkyL38dRFaRH7RaRAgU6JKL9rMQ=="
-  "resolved" "https://registry.npmjs.org/eslint/-/eslint-8.30.0.tgz"
-  "version" "8.30.0"
+"eslint@*", "eslint@^6.0.0 || ^7.0.0 || ^8.0.0", "eslint@^6.2.0 || ^7.0.0 || ^8.0.0", "eslint@^8.31.0", "eslint@>= 6", "eslint@>=5", "eslint@>=6.0.0", "eslint@>=7.0.0":
+  "integrity" "sha512-0tQQEVdmPZ1UtUKXjX7EMm9BlgJ08G90IhWh0PKDCb3ZLsgAOHI8fYSIzYVZej92zsgq+ft0FGsxhJ3xo2tbuA=="
+  "resolved" "https://registry.npmjs.org/eslint/-/eslint-8.31.0.tgz"
+  "version" "8.31.0"
   dependencies:
-    "@eslint/eslintrc" "^1.4.0"
+    "@eslint/eslintrc" "^1.4.1"
     "@humanwhocodes/config-array" "^0.11.8"
     "@humanwhocodes/module-importer" "^1.0.1"
     "@nodelib/fs.walk" "^1.2.8"
@@ -4917,10 +4917,10 @@
   dependencies:
     "side-channel" "^1.0.4"
 
-"quasar@^2.11.2":
-  "integrity" "sha512-4u1REwVqJ7KPB7Mo/fxR6P4c5CQ1F7zjW/w4Cnb5OKnWhZDDSRcIWK+kTUZoFZ7/lGlac/0iFQXyrIc0noHhiw=="
-  "resolved" "https://registry.npmjs.org/quasar/-/quasar-2.11.2.tgz"
-  "version" "2.11.2"
+"quasar@^2.11.3":
+  "integrity" "sha512-a+PApE126fwtCsuPvbDLuSSgcFUy5bGu9WjqvVRP3z0xw+7pH93Hva2M+QQLMsYs4a5tpT4N/qXlsI591nxuxA=="
+  "resolved" "https://registry.npmjs.org/quasar/-/quasar-2.11.3.tgz"
+  "version" "2.11.3"
 
 "queue-microtask@^1.2.2":
   "integrity" "sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A=="
