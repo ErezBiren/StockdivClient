@@ -91,7 +91,7 @@ export default defineComponent({
   components: {
     QCalendarMonth,
   },
-  setup() {    
+  setup() {
     const store = stockdivStore();
     const router = useRouter();
     return {
@@ -142,11 +142,18 @@ export default defineComponent({
       this.month += next ? 1 : -1;
       this.router.push({
         path: `/monthlyDividendsView/${new Date(
-          Date.parse((this.month+1) + ' 1, 2022')
+          Date.parse(this.month + 1 + ' 1, 2022')
         ).toLocaleString('en-us', {
           month: 'long',
         })}`,
       });
+    },
+    async portfolioChange() {
+      let { data } = await api.get(
+        `portfolio/${this.store.selectedPortfolio}/currency`
+      );
+      this.store.portfolioCurrency = data;
+      this.getMonthEvents();
     },
   },
   mounted() {
@@ -159,7 +166,7 @@ export default defineComponent({
       ).getMonth();
       this.selectedDate = `${new Date().getFullYear()}-${this.month + 1}-01`;
       this.getMonthEvents();
-      bus.on('changedPortfolio', this.getMonthEvents);
+      bus.on('changedPortfolio', this.portfolioChange);
       bus.on('changedSettings', this.getMonthEvents);
     }
   },

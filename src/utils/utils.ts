@@ -16,7 +16,7 @@ export const getRangeColor = (value: number): string => {
   if (value > 1) value = 1;
   const hue = ((1 - value) * 120).toString(10);
   return ['hsl(', hue, ',100%,50%)'].join('');
-}
+};
 
 export const validateEmail = (email: string) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,10 +53,14 @@ export const getTodayDate = (full: boolean): string => {
 };
 
 export const filters = {
-  formatToCurrency(value: number): string {
+  formatToCurrency(value: number, currency?: string): string {
     const formatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency
+        ? currency
+        : store.portfolioCurrency
+        ? store.portfolioCurrency
+        : 'USD',
       maximumFractionDigits: store.settings.decimalDigits,
     });
     return formatter.format(value);

@@ -59,7 +59,7 @@
               @click="focusRePassword()"
             />
             <q-space />
-            <div class="cursor-pointer text-caption" @click="forgotPassword">
+            <div class="cursor-pointer text-caption" @click="forgotPassword()">
               Forgot?
             </div>
           </div>
@@ -85,14 +85,14 @@
           <div class="row no-wrap q-my-sm">
             <div
               class="cursor-pointer q-mx-sm"
-              @click="openPrivacyPolicyDialog"
+              @click="openPrivacyPolicyDialog()"
             >
               Privacy policy
             </div>
-            <div class="cursor-pointer q-mx-sm" @click="openDisclaimerDialog">
+            <div class="cursor-pointer q-mx-sm" @click="openDisclaimerDialog()">
               Disclaimer
             </div>
-            <div class="cursor-pointer q-mx-sm" @click="openWhyEmailDialog">
+            <div class="cursor-pointer q-mx-sm" @click="openWhyEmailDialog()">
               Why email?
             </div>
           </div>
@@ -126,17 +126,17 @@ export default defineComponent({
     const store = stockdivStore();
 
     return {
-      password: ref(''),
-      rePassword: ref(''),
-      isPwd: ref(true),
-      isRePwd: ref(true),
-      email: ref(''),
+      password: ref<string>(''),
+      rePassword: ref<string>(''),
+      isPwd: ref<boolean>(true),
+      isRePwd: ref<boolean>(true),
+      email: ref<string>(''),
       refRePassword: ref<QInput>(),
       refEmail: ref<QInput>(),
-      newUser: ref(false),
-      rememberMe: ref(false),
-      confirmationCode: ref(''),
-      codeSent: ref(false),
+      newUser: ref<boolean>(false),
+      rememberMe: ref<boolean>(false),
+      confirmationCode: ref<string>(''),
+      codeSent: ref<boolean>(false),
       disableLetMeIn: ref<boolean>(false),
       store,
       forgotPasswordMode: ref<boolean>(false),

@@ -958,6 +958,13 @@ export default defineComponent({
     soldAllColor(shares: number): string {
       return shares === 0 ? 'text-grey-6' : 'text-black';
     },
+    async portfolioChange() {
+      let { data } = await api.get(
+        `portfolio/${this.store.selectedPortfolio}/currency`
+      );
+      this.store.portfolioCurrency = data;
+      this.getPortfolio();
+    },
   },
   mounted() {
     if (this.store.token === '') {
@@ -968,7 +975,7 @@ export default defineComponent({
         this.store.settings.portfolioView.mode || ViewModeEnum.CARD;
       this.visibleColumns = this.store.settings.portfolioView.visibleColumns;
       this.getPortfolio();
-      bus.on('changedPortfolio', this.getPortfolio);
+      bus.on('changedPortfolio', this.portfolioChange);
       bus.on('changedSettings', this.getPortfolio);
     }
   },

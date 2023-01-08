@@ -53,6 +53,13 @@
 
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
+        <div :class="getDifferecePercentColor">
+          <q-icon
+                  class="q-mr-xs q-mt-xs"
+                  size="xs"
+                  :name="getIncreaseArrow(percentDifference)"
+                />{{ filters.formatToPercentage(percentDifference) }}
+        </div>
         <apexchart
           type="line"
           height="300"
@@ -60,6 +67,15 @@
           :options="whatHappenedSinceOptions"
           :series="whatHappenedSinceSeries"
         ></apexchart>
+      </q-card-section>
+      <q-card-section>
+        <q-option-group
+          v-model="period"
+          :options="periodOptions"
+          dense
+          inline
+          @update:model-value="changePeriod"
+        />
       </q-card-section>
       <q-inner-loading :showing="whatHappenedSinceLoading">
         <q-spinner-hourglass size="50px" color="primary" />
@@ -96,7 +112,7 @@
                 {{ filters.formatToDate(item.payDay.substring(0, 10)) }}
               </td>
               <td>
-                {{ filters.formatToCurrency(item.amount) }}
+                {{ filters.formatToCurrency(item.amount, tickerCurrency) }}
               </td>
               <td :class="getIncreasePercentColor(item.increasePercent)">
                 <q-icon
@@ -136,7 +152,7 @@
           v-model="showDivs"
           label="Show Dividends"
           class="q-ma-none q-pa-none"
-          @click="toggleShowDividends"
+          @click="toggleShowDividends()"
         />
         <q-scroll-area
           style="height: 280px; max-width: 100%"
@@ -282,7 +298,7 @@
         </div>
         <q-separator />
         <div :class="getMarketValueColor">
-          {{ filters.formatToCurrency(tickerPrice) }}
+          {{ filters.formatToCurrency(tickerPrice, tickerCurrency) }}
           <div v-if="tickerInvested > 0">
             &nbsp;(<q-icon class="q-mr-xs" :name="getArrow" />{{
               filters.formatToPercentage(plPercentage)
@@ -290,7 +306,8 @@
           </div>
         </div>
         <div :class="getDailyChangeColor">
-          Daily PL: {{ filters.formatToCurrency(dailyChange) }} (<q-icon
+          Daily PL:
+          {{ filters.formatToCurrency(dailyChange, tickerCurrency) }} (<q-icon
             class="q-mr-xs"
             :name="getDailyArrow"
           />{{ filters.formatToPercentage(dailyChangePercentage) }})<q-separator
@@ -537,7 +554,7 @@
             checked-icon="task_alt"
             unchecked-icon="highlight_off"
             v-model="isStockDividend"
-            @click="handleStockDividend"
+            @click="handleStockDividend()"
             ><q-tooltip class="bg-indigo"
               >Adding a stock dividend means the stock has no real
               cost</q-tooltip
@@ -665,10 +682,51 @@ export default defineComponent({
       return date <= getTodayDate(false).replace(/-/g, '/');
     }
     const router = useRouter();
-    let tickerDividendsSoFar = ref(0);
-    let tickerInvested = ref(0);
-    let tickerMarketValue = ref(0);
+    let tickerDividendsSoFar = ref<number>(0);
+    let tickerInvested = ref<number>(0);
+    let tickerMarketValue = ref<number>(0);
+    let tickerCurrency = ref<string>('USD');
+    let roiMeterText = ref<string>('');
     return {
+      roiMeterText,
+      lastAmount: ref<number>(0),
+      firstAmount: ref<number>(0),
+      firstTransaction: ref<Date>(),
+      period: ref<string>('fp'),
+      periodOptions: ref([
+        {
+          label: 'Week',
+          value: 'w',
+        },
+        {
+          label: 'Month',
+          value: 'm',
+        },
+        {
+          label: 'Year',
+          value: 'y',
+        },
+        {
+          label: 'YTD',
+          value: 'ytd',
+        },
+        {
+          label: '3Y',
+          value: '3y',
+        },
+        {
+          label: '5Y',
+          value: '5y',
+        },
+        {
+          label: '10Y',
+          value: '10y',
+        },
+        {
+          label: '1st Purchase',
+          value: 'fp',
+        },
+      ]),
       getCurrencySymbol,
       isStockDividend: ref<boolean>(false),
       editedTransaction: ref<ITransactionData>(),
@@ -695,16 +753,17 @@ export default defineComponent({
       dailyChange: ref<number>(0),
       whatHappenedSinceChart: ref<ApexCharts>(),
       whatHappenedSinceLoading: ref<boolean>(false),
+      originalWhatHappenedSinceSeries: ref(),
       whatHappenedSinceSeries: ref([
         {
           name: 'Price',
           type: 'line',
-          data: [],
+          data: [] as number[],
         },
         {
           name: 'Dividends',
           type: 'line',
-          data: [],
+          data: [] as number[],
         },
       ]),
       whatHappenedSinceOptions: ref({
@@ -742,7 +801,7 @@ export default defineComponent({
           curve: 'straight',
         },
         title: {
-          text: 'What happened since your first purchase (up to 10 years)',
+          text: 'What happened since (up to 10 years)',
           align: 'center',
         },
         dataLabels: {
@@ -760,7 +819,7 @@ export default defineComponent({
             labels: {
               show: true,
               formatter: function (val: number) {
-                return filters.formatToCurrency(val);
+                return filters.formatToCurrency(val, tickerCurrency.value);
               },
             },
           },
@@ -772,7 +831,7 @@ export default defineComponent({
             labels: {
               show: true,
               formatter: function (val: number) {
-                return filters.formatToCurrency(val);
+                return filters.formatToCurrency(val, tickerCurrency.value);
               },
             },
           },
@@ -805,7 +864,7 @@ export default defineComponent({
         dataLabels: {
           enabled: true,
           formatter: function (val: number) {
-            return filters.formatToCurrency(val);
+            return filters.formatToCurrency(val, tickerCurrency.value);
           },
           offsetY: -20,
           style: {
@@ -852,7 +911,7 @@ export default defineComponent({
           labels: {
             show: true,
             formatter: function (val: number) {
-              return filters.formatToCurrency(val);
+              return filters.formatToCurrency(val, tickerCurrency.value);
             },
           },
         },
@@ -872,59 +931,6 @@ export default defineComponent({
         { data: [0] },
         { data: [0] },
       ]),
-      roiChartOptions: ref({
-        chart: {
-          type: 'bar',
-          stacked: true,
-        },
-        tooltip: {
-          enabled: false,
-        },
-        dataLabels: {
-          enabled: true,
-          formatter: function (val: number) {
-            return filters.formatToCurrency(val);
-          },
-          style: {
-            colors: ['#304758'],
-          },
-        },
-        legend: {
-          show: false,
-        },
-        plotOptions: {
-          bar: {
-            horizontal: false,
-            borderRadius: 10,
-            dataLabels: {
-              total: {
-                enabled: true,
-                formatter: function () {
-                  return tickerInvested.value === 0
-                    ? 0
-                    : filters.formatToPercentage(
-                        (tickerDividendsSoFar.value / tickerInvested.value) *
-                          100
-                      );
-                },
-                style: {
-                  fontWeight: 900,
-                },
-              },
-            },
-          },
-        },
-        yaxis: {
-          show: false,
-        },
-        xaxis: {
-          type: 'string',
-          categories: ['ROI'],
-        },
-        fill: {
-          opacity: 1,
-        },
-      }),
       tickerDividendsSoFar,
       tickerInvested,
       tickerShares: ref<number>(0),
@@ -937,7 +943,7 @@ export default defineComponent({
       tickerAveragePrice: ref<number>(0),
       tickerDividendYield: ref<number>(0),
       tickerFrequency: ref<DividendFrequencyEnum>(DividendFrequencyEnum.Other),
-      tickerCurrency: ref<string>('USD'),
+      tickerCurrency,
       tickerPrice: ref<number>(0),
       allDividendsLoading: ref<boolean>(false),
       dividendData: ref<IDividendHistoryData[]>([]),
@@ -1003,7 +1009,7 @@ export default defineComponent({
         dataLabels: {
           enabled: true,
           formatter: function (val: number) {
-            return filters.formatToCurrency(val);
+            return filters.formatToCurrency(val, tickerCurrency.value);
           },
           offsetY: -20,
           style: {
@@ -1047,7 +1053,7 @@ export default defineComponent({
           labels: {
             show: true,
             formatter: function (val: number) {
-              return filters.formatToCurrency(val);
+              return filters.formatToCurrency(val, tickerCurrency.value);
             },
           },
         },
@@ -1061,6 +1067,9 @@ export default defineComponent({
     };
   },
   methods: {
+    changePeriod() {
+      this.processWhatHappenedSinceData();
+    },
     closePosition() {
       this.newTransactionShares = -this.tickerShares;
       this.newTransactionSharePrice = this.tickerPrice;
@@ -1440,6 +1449,9 @@ export default defineComponent({
           api.get(
             `dividend/portfolio/${this.store.selectedPortfolio}/${this.ticker}/dividendsSoFar`
           ),
+          api.get(
+            `ticker/${this.ticker}/${this.store.selectedPortfolio}/roiMeter`
+          ),
         ])
         .then(
           axios.spread(async (...responses) => {
@@ -1456,6 +1468,7 @@ export default defineComponent({
               this.tickerMarketValue -
               this.tickerInvested +
               this.tickerDividendsSoFar;
+            this.roiMeterText = responses[3].data;
           })
         )
         .catch((err: AxiosError) => {
@@ -1509,6 +1522,71 @@ export default defineComponent({
           this.averageIncreaseLoading = false;
         });
     },
+    processWhatHappenedSinceData() {
+      let limit: Date;
+      const endDate: Date = date.subtractFromDate(new Date(), { days: 1 });
+      if (this.period === 'fp' && !this.firstTransaction) this.period = '10y';
+      switch (this.period) {
+        case 'w': {
+          limit = date.subtractFromDate(endDate, { days: 7 });
+          break;
+        }
+        case 'm': {
+          limit = date.subtractFromDate(endDate, { months: 1 });
+          break;
+        }
+        case 'y': {
+          limit = date.subtractFromDate(endDate, { years: 1 });
+          break;
+        }
+        case 'ytd': {
+          limit = date.startOfDate(endDate, 'year');
+          break;
+        }
+        case '3y': {
+          limit = date.subtractFromDate(endDate, { years: 3 });
+          break;
+        }
+        case '5y': {
+          limit = date.subtractFromDate(endDate, { years: 5 });
+          break;
+        }
+        case '10y': {
+          limit = date.subtractFromDate(endDate, { years: 10 });
+          break;
+        }
+        case 'fp': {
+          limit = this.firstTransaction
+            ? this.firstTransaction
+            : date.subtractFromDate(endDate, { years: 10 });
+          break;
+        }
+      }
+      let filtered: [Date, [number, number]][] =
+        this.originalWhatHappenedSinceSeries.filter(
+          (element: [Date, [number, number]]) =>
+            new Date(element[0]).getTime() >= limit.getTime()
+        );
+      this.lastAmount = filtered[0][1][0]
+        ? filtered[0][1][0]
+        : filtered[1][1][0];
+      this.firstAmount = filtered[filtered.length - 1][1][0];
+      this.whatHappenedSinceSeries[0].data = filtered.map(
+        (element: [Date, [number, number]]) => element[1][0]
+      );
+      this.whatHappenedSinceSeries[1].data = filtered.map(
+        (element: [Date, [number, number]]) => element[1][1]
+      );
+
+      if (this.whatHappenedSinceChart)
+        this.whatHappenedSinceChart.updateOptions({
+          xaxis: {
+            categories: filtered.map(
+              (element: [Date, [number, number]]) => element[0]
+            ),
+          },
+        });
+    },
     runWhatHappenedSinceRelatedAPIs() {
       this.whatHappenedSinceLoading = true;
       axios
@@ -1519,20 +1597,8 @@ export default defineComponent({
         ])
         .then(
           axios.spread(async (...responses) => {
-            this.whatHappenedSinceSeries[0].data = responses[0].data.map(
-              (element: [Date, [number, number]]) => element[1][0]
-            );
-            this.whatHappenedSinceSeries[1].data = responses[0].data.map(
-              (element: [Date, [number, number]]) => element[1][1]
-            );
-            if (this.whatHappenedSinceChart)
-              this.whatHappenedSinceChart.updateOptions({
-                xaxis: {
-                  categories: responses[0].data.map(
-                    (element: [Date, [number, number]]) => element[0]
-                  ),
-                },
-              });
+            this.originalWhatHappenedSinceSeries = responses[0].data;
+            this.processWhatHappenedSinceData();
           })
         )
         .catch((err: AxiosError) => {
@@ -1585,6 +1651,7 @@ export default defineComponent({
                 if (this.store.settings.dateFormat !== 'YYYY-MM-DD')
                   element.title = filters.formatToDate(element.title);
                 if (element.transaction) {
+                  this.firstTransaction = new Date(element.transaction.when);
                   withTransactions = true;
                   this.tickerShares += element.transaction.shares;
                 }
@@ -1592,6 +1659,7 @@ export default defineComponent({
             );
             this.showDivs = !withTransactions;
             this.toggleShowDividends();
+            this.runWhatHappenedSinceRelatedAPIs();
           })
         )
         .catch((err: AxiosError) => {
@@ -1606,7 +1674,6 @@ export default defineComponent({
       this.runTickerInfoRelatedAPIs();
       this.runTickerInvestmentsRelatedAPIs();
       this.runAverageIncreaseRelatedAPIs();
-      this.runWhatHappenedSinceRelatedAPIs();
       this.runAllDividendsRelatedAPIs();
       this.runTimelineRelatedAPIs();
     },
@@ -1635,6 +1702,77 @@ export default defineComponent({
     bus.off('changedSettings', this.runOnLoad);
   },
   computed: {
+    roiChartOptions() {
+      return {
+        chart: {
+          type: 'bar',
+          stacked: true,
+        },
+        tooltip: {
+          enabled: false,
+        },
+        grid: {
+          yaxis: {
+            lines: {
+              show: false,
+            },
+          },
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: (val: number) => {
+            return filters.formatToCurrency(val, this.tickerCurrency);
+          },
+          style: {
+            colors: ['#304758'],
+          },
+        },
+        legend: {
+          show: false,
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            dataLabels: {
+              total: {
+                enabled: true,
+                formatter: () => {
+                  return this.tickerInvested === 0
+                    ? ''
+                    : `${filters.formatToPercentage(
+                        (this.tickerDividendsSoFar / this.tickerInvested) * 100
+                      )} | Approximately ${this.roiMeterText} to 100% ROI`;
+                },
+                style: {
+                  fontWeight: 900,
+                },
+              },
+            },
+          },
+        },
+        yaxis: {
+          show: false,
+        },
+        xaxis: {
+          type: 'string',
+          categories: ['ROI'],
+        },
+        fill: {
+          opacity: 1,
+        },
+      };
+    },
+    getDifferecePercentColor(): string {
+      return this.lastAmount < this.firstAmount
+        ? 'absolute-top-right q-mr-xl q-mt-md text-red text-weight-bold row no-wrap'
+        : 'absolute-top-right q-mr-xl q-mt-md text-green text-weight-bold row no-wrap';
+    },
+    percentDifference(): number {
+      return this.firstAmount === 0
+        ? 0
+        : ((this.lastAmount - this.firstAmount) / this.firstAmount) * 100;
+    },
     getPortfoliosList(): string[] {
       return this.store.portfolios.filter(
         (item: string) => item !== this.store.selectedPortfolio
@@ -1658,7 +1796,8 @@ export default defineComponent({
         averagePrice = '';
       } else {
         averagePrice = `Average Price: ${filters.formatToCurrency(
-          this.tickerAveragePrice
+          this.tickerAveragePrice,
+          this.tickerCurrency
         )}`;
       }
       let divYield: string;

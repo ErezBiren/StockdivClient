@@ -321,6 +321,13 @@ export default defineComponent({
           this.yearlyPaymentLoading = false;
         });
     },
+    async portfolioChange() {
+      let { data } = await api.get(
+        `portfolio/${this.store.selectedPortfolio}/currency`
+      );
+      this.store.portfolioCurrency = data;
+      this.loadMatrixData();
+    },
   },
   mounted() {
     if (this.store.token === '') {
@@ -328,7 +335,7 @@ export default defineComponent({
       this.router.push('/');
     } else {
       this.loadMatrixData();
-      bus.on('changedPortfolio', this.loadMatrixData);
+      bus.on('changedPortfolio', this.portfolioChange);
       bus.on('changedSettings', this.loadMatrixData);
     }
   },
@@ -344,7 +351,6 @@ export default defineComponent({
 }
 table thead {
   position: sticky;
-  top: 0;
   z-index: 1;
   background: #e1f5fe !important;
   inset-block-start: -20px;

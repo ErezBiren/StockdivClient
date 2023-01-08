@@ -9,6 +9,7 @@ export const stockdivStore = defineStore('stockdiv', {
     token: '',
     portfolios: [],
     selectedPortfolio: '',
+    portfolioCurrency: '',
     settings: {
       dateFormat: 'YYYY-MM-DD',
       defaultTax: 0,
@@ -39,6 +40,9 @@ export const stockdivStore = defineStore('stockdiv', {
     },
     getSelectedPortfolio(state) {
       return state.selectedPortfolio;
+    },
+    getPortfolioCurrency(state) {
+      return state.portfolioCurrency;
     },
     getDateFormat(state) {
       return state.settings.dateFormat;

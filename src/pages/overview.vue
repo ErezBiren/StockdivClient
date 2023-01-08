@@ -195,7 +195,7 @@
           v-model="showDivs"
           label="Show Dividends"
           class="q-ma-none q-pa-none"
-          @click="toggleShowDividends"
+          @click="toggleShowDividends()"
         />
 
         <q-scroll-area
@@ -313,10 +313,12 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const store = stockdivStore();
-    let portfolioMarketValue = ref(0);
-    let portfolioInvested = ref(0);
-    let dividendsSoFar = ref(0);
+    let portfolioMarketValue = ref<number>(0);
+    let portfolioInvested = ref<number>(0);
+    let dividendsSoFar = ref<number>(0);
+    let roiMeterText = ref<string>('');
     return {
+      roiMeterText,
       timelineItem: ref(),
       store,
       showDivs: ref<boolean>(false),
@@ -326,56 +328,6 @@ export default defineComponent({
         { data: [0] },
         { data: [0] },
       ]),
-      roiChartOptions: ref({
-        chart: {
-          type: 'bar',
-          stacked: true,
-        },
-        tooltip: {
-          enabled: false,
-        },
-        dataLabels: {
-          enabled: true,
-          formatter: function (val: number) {
-            return filters.formatToCurrency(val);
-          },
-          style: {
-            fontSize: '1em',
-            colors: ['#304758'],
-          },
-        },
-        legend: {
-          show: false,
-        },
-        plotOptions: {
-          bar: {
-            horizontal: false,
-            borderRadius: 10,
-            dataLabels: {
-              total: {
-                enabled: true,
-                formatter: function () {
-                  return portfolioInvested.value === 0
-                    ? 0
-                    : filters.formatToPercentage(
-                        (dividendsSoFar.value / portfolioInvested.value) * 100
-                      );
-                },
-              },
-            },
-          },
-        },
-        yaxis: {
-          show: false,
-        },
-        xaxis: {
-          type: 'string',
-          categories: ['ROI'],
-        },
-        fill: {
-          opacity: 1,
-        },
-      }),
       timelineItems: ref<
         { title: string; content: string; transaction?: ITransactionData }[]
       >([]),
@@ -1182,6 +1134,8 @@ export default defineComponent({
           api.get(
             `portfolio/${this.store.selectedPortfolio}/lastTotalDividend`
           ),
+          api.get(`portfolio/${this.store.selectedPortfolio}/currency`),
+          api.get(`portfolio/${this.store.selectedPortfolio}/roiMeter`),
         ])
         .then(
           axios.spread((...responses) => {
@@ -1199,6 +1153,8 @@ export default defineComponent({
               this.portfolioInvested +
               this.dividendsSoFar;
             this.portfolioLastTotalDividend = responses[3].data;
+            this.store.portfolioCurrency = responses[4].data;
+            this.roiMeterText = responses[5].data;
           })
         )
         .catch((err: AxiosError) => {
@@ -1456,6 +1412,65 @@ export default defineComponent({
     },
   },
   computed: {
+    roiChartOptions() {
+      return {
+        chart: {
+          type: 'bar',
+          stacked: true,
+        },
+        tooltip: {
+          enabled: false,
+        },
+        grid: {
+          yaxis: {
+            lines: {
+              show: false,
+            },
+          },
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val: number) {
+            return filters.formatToCurrency(val);
+          },
+          style: {
+            fontSize: '1em',
+            colors: ['#304758'],
+          },
+        },
+        legend: {
+          show: false,
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            borderRadius: 10,
+            dataLabels: {
+              total: {
+                enabled: true,
+                formatter: () => {
+                  return this.portfolioInvested === 0
+                    ? ''
+                    : `${filters.formatToPercentage(
+                        (this.dividendsSoFar / this.portfolioInvested) * 100
+                      )} | Approximately ${this.roiMeterText} to 100% ROI`;
+                },
+              },
+            },
+          },
+        },
+        yaxis: {
+          show: false,
+        },
+        xaxis: {
+          type: 'string',
+          categories: ['ROI'],
+        },
+        fill: {
+          opacity: 1,
+        },
+      };
+    },
     getPortfolioDivYield(): number {
       return this.portfolioMarketValue === 0
         ? 0
