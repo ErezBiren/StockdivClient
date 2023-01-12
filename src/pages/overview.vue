@@ -132,11 +132,19 @@
 
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
+        <q-toggle
+          dense
+          v-model="showReinvest"
+          label="With Reinvest"
+          class="q-ma-none q-pa-none"
+          @click="toggleReinvest()"
+        />
+
         <apexchart
           type="bar"
           height="300"
           :options="projectionChartOptions"
-          :series="projectionChartSeries"
+          :series="projectionActualChartSeries"
         ></apexchart>
       </q-card-section>
       <q-inner-loading :showing="projectionLoading">
@@ -193,7 +201,7 @@
         <q-toggle
           dense
           v-model="showDivs"
-          label="Show Dividends"
+          label="Show Dividends/Splits"
           class="q-ma-none q-pa-none"
           @click="toggleShowDividends()"
         />
@@ -217,6 +225,33 @@
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
+
+    <q-card
+      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      v-if="newsItems.length > 0"
+      ><div class="justify-center">News</div>
+      <q-card-section>
+        <q-list separator>
+          <q-item
+            clickable
+            v-ripple
+            v-for="newsItem in newsItems"
+            :key="newsItem.title"
+            @click="gotoNews(newsItem.link)"
+            ><q-item-section>
+              <q-item-label overline>{{
+                filters.formatToDate(newsItem.date.substring(0, 10))
+              }}</q-item-label>
+              <q-item-label caption>{{ newsItem.title }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card-section>
+      <q-inner-loading :showing="newsLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
     <q-page-sticky position="top">
       <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
         <div class="text-h5 row no-wrap justify-center">
@@ -307,6 +342,7 @@ import { filters } from '../utils/utils';
 import { useRouter } from 'vue-router';
 import { IDividendAlert } from 'src/utils/interfaces/IDividendAlert';
 import { ITransactionData } from 'src/utils/interfaces/ITransactionData';
+import { ITickerNews } from 'src/utils/interfaces/ITickerNews';
 
 export default defineComponent({
   name: 'overView',
@@ -318,10 +354,13 @@ export default defineComponent({
     let dividendsSoFar = ref<number>(0);
     let roiMeterText = ref<string>('');
     return {
+      newsLoading: ref<boolean>(false),
+      newsItems: ref<ITickerNews[]>([]),
       roiMeterText,
       timelineItem: ref(),
       store,
       showDivs: ref<boolean>(false),
+      showReinvest: ref<boolean>(false),
       router,
       filters,
       roiChartSeries: ref<[{ data: number[] }, { data: number[] }]>([
@@ -832,6 +871,10 @@ export default defineComponent({
       projectionLoading: ref<boolean>(false),
       diversificationLoading: ref<boolean>(false),
       projectionChartSeries: ref<[{ data: number[] }]>([{ data: [] }]),
+      projectionActualChartSeries: ref<[{ data: number[] }]>([{ data: [] }]),
+      projectionWithReinvestChartSeries: ref<[{ data: number[] }]>([
+        { data: [] },
+      ]),
       performanceChartSeries: ref<{ name: string; data: number[] }[]>([
         { name: '', data: [] },
       ]),
@@ -1026,6 +1069,15 @@ export default defineComponent({
     };
   },
   methods: {
+    toggleReinvest() {
+      if (this.showReinvest)
+        this.projectionActualChartSeries =
+          this.projectionWithReinvestChartSeries;
+      else this.projectionActualChartSeries = this.projectionChartSeries;
+    },
+    gotoNews(link: string) {
+      window.open(link, '_blank');
+    },
     deletePortfolio() {
       this.$q
         .dialog({
@@ -1155,6 +1207,7 @@ export default defineComponent({
             this.portfolioLastTotalDividend = responses[3].data;
             this.store.portfolioCurrency = responses[4].data;
             this.roiMeterText = responses[5].data;
+            this.runProjectionRelatedAPIs();
           })
         )
         .catch((err: AxiosError) => {
@@ -1233,8 +1286,8 @@ export default defineComponent({
             this.averageIncrease10y = responses[0].data.averageIncrease10y;
             this.averageIncrease5y = responses[0].data.averageIncrease5y;
             let incomeLastYear: number = responses[1].data;
-            this.projectionChartSeries[0].data = [];
-            this.projectionChartSeries[0].data.push(incomeLastYear);
+            this.projectionChartSeries[0].data = [incomeLastYear];
+            this.projectionWithReinvestChartSeries[0].data = [incomeLastYear];
             for (let i = 0; i < 11; i++) {
               this.projectionChartSeries[0].data.push(
                 incomeLastYear *
@@ -1243,6 +1296,17 @@ export default defineComponent({
               );
               incomeLastYear *=
                 1 + (i < 5 ? this.averageIncrease5y : this.averageIncrease10y);
+            }
+            this.projectionActualChartSeries = this.projectionChartSeries;
+            let divYield = this.getPortfolioDivYield / 100;
+            let marketValue = this.portfolioMarketValue;
+            for (let i = 0; i < 11; i++) {
+              this.projectionWithReinvestChartSeries[0].data.push(
+                marketValue * divYield
+              );
+              marketValue += marketValue * divYield;
+              divYield *=
+                1 + (i < 6 ? this.averageIncrease5y : this.averageIncrease10y);
             }
           })
         )
@@ -1400,15 +1464,31 @@ export default defineComponent({
           this.monthsProjectionLoading = false;
         });
     },
+    runNewsRelatedAPIs() {
+      this.newsLoading = true;
+      axios
+        .all([api.get(`portfolio/${this.store.selectedPortfolio}/news`)])
+        .then(
+          axios.spread((...responses) => {
+            this.newsItems = responses[0].data;
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.newsLoading = false;
+        });
+    },
     runWhenHasTransactions() {
       this.runPortfolioRelatedAPIs();
       this.runDividendsRelatedAPIs();
-      this.runProjectionRelatedAPIs();
       this.runDiversificationRelatedAPIs();
       this.runPerformanceRelatedAPIs();
       this.runTimelineRelatedAPIs();
       this.runHighestIncomeRelatedAPIs();
       this.runMonthsProjectionRelatedAPIs();
+      this.runNewsRelatedAPIs();
     },
   },
   computed: {

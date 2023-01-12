@@ -53,12 +53,12 @@
 
     <q-card class="text-center q-ma-md q-mb-lg shadow-8 bg-light-blue-1">
       <q-card-section>
-        <div :class="getDifferecePercentColor">
+        <div :class="getDifferencePercentColor">
           <q-icon
-                  class="q-mr-xs q-mt-xs"
-                  size="xs"
-                  :name="getIncreaseArrow(percentDifference)"
-                />{{ filters.formatToPercentage(percentDifference) }}
+            class="q-mr-xs q-mt-xs"
+            size="xs"
+            :name="getIncreaseArrow(percentDifference)"
+          />{{ filters.formatToPercentage(percentDifference) }}
         </div>
         <apexchart
           type="line"
@@ -150,7 +150,7 @@
         <q-toggle
           dense
           v-model="showDivs"
-          label="Show Dividends"
+          label="Show Dividends/Splits"
           class="q-ma-none q-pa-none"
           @click="toggleShowDividends()"
         />
@@ -172,6 +172,33 @@
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>
+
+    <q-card
+      class="text-center q-ma-md shadow-8 bg-light-blue-1"
+      v-if="newsItems.length > 0"
+    >
+      <q-card-section>
+        <q-list separator>
+          <q-item
+            clickable
+            v-ripple
+            v-for="newsItem in newsItems"
+            :key="newsItem.title"
+            @click="gotoNews(newsItem.link)"
+            ><q-item-section>
+              <q-item-label overline>{{
+                filters.formatToDate(newsItem.date.substring(0, 10))
+              }}</q-item-label>
+              <q-item-label caption>{{ newsItem.title }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card-section>
+      <q-inner-loading :showing="newsLoading">
+        <q-spinner-hourglass size="50px" color="primary" />
+      </q-inner-loading>
+    </q-card>
+
     <q-page-sticky position="top" style="z-index: 2">
       <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
         <div class="row no-wrapd">
@@ -673,6 +700,7 @@ import { date } from 'quasar';
 import { filters } from '../utils/utils';
 import axios, { AxiosError } from 'axios';
 import { IDividendHistoryData } from 'src/utils/interfaces/IDividendHistoryData';
+import { ITickerNews } from 'src/utils/interfaces/ITickerNews';
 export default defineComponent({
   name: 'tickerPage',
 
@@ -739,6 +767,8 @@ export default defineComponent({
         { title: string; content: string; transaction?: ITransactionData }[]
       >([]),
       timelineLoading: ref<boolean>(false),
+      newsLoading: ref<boolean>(false),
+      newsItems: ref<ITickerNews[]>([]),
       thumbStyle: ref({
         right: '2px',
         borderRadius: '5px',
@@ -1067,6 +1097,9 @@ export default defineComponent({
     };
   },
   methods: {
+    gotoNews(link: string) {
+      window.open(link, '_blank');
+    },
     changePeriod() {
       this.processWhatHappenedSinceData();
     },
@@ -1669,6 +1702,22 @@ export default defineComponent({
           this.timelineLoading = false;
         });
     },
+    runNewsRelatedAPIs() {
+      this.newsLoading = true;
+      axios
+        .all([api.get(`ticker/${this.ticker}/news`)])
+        .then(
+          axios.spread((...responses) => {
+            this.newsItems = responses[0].data;
+          })
+        )
+        .catch((err: AxiosError) => {
+          showAPIError(err);
+        })
+        .finally(() => {
+          this.newsLoading = false;
+        });
+    },
     runOnLoad() {
       this.getTickerUserData();
       this.runTickerInfoRelatedAPIs();
@@ -1676,6 +1725,7 @@ export default defineComponent({
       this.runAverageIncreaseRelatedAPIs();
       this.runAllDividendsRelatedAPIs();
       this.runTimelineRelatedAPIs();
+      this.runNewsRelatedAPIs();
     },
   },
   mounted() {
@@ -1763,7 +1813,7 @@ export default defineComponent({
         },
       };
     },
-    getDifferecePercentColor(): string {
+    getDifferencePercentColor(): string {
       return this.lastAmount < this.firstAmount
         ? 'absolute-top-right q-mr-xl q-mt-md text-red text-weight-bold row no-wrap'
         : 'absolute-top-right q-mr-xl q-mt-md text-green text-weight-bold row no-wrap';
