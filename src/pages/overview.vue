@@ -229,7 +229,7 @@
     <q-card
       class="text-center q-ma-md shadow-8 bg-light-blue-1"
       v-if="newsItems.length > 0"
-      ><div class="justify-center">News</div>
+      ><div class="justify-center text-h6">News</div>
       <q-card-section>
         <q-list separator>
           <q-item
