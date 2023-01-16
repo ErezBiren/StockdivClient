@@ -147,7 +147,7 @@
           :series="projectionActualChartSeries"
         ></apexchart>
       </q-card-section>
-      <q-inner-loading :showing="projectionLoading">
+      <q-inner-loading :showing="projectionLoading || marketValueLoading">
         <q-spinner-hourglass size="50px" color="primary" />
       </q-inner-loading>
     </q-card>

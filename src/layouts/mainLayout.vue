@@ -673,7 +673,7 @@ export default defineComponent({
             this.importInProcess = false;
             this.csvToImport = null;
             showNotification(
-              `Tickers ${response.data} are obsolete. Please remove them from the file and import it again`
+              `Tickers ${response.data} were not found. Please remove them from the file and import it again`
             );
           } else {
             let err = '';
