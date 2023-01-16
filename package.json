@@ -14,23 +14,23 @@
     "@quasar/extras": "1.15.9",
     "@quasar/quasar-ui-qcalendar": "4.0.0-beta.15",
     "apexcharts": "3.36.3",
-    "axios": "1.2.1",
+    "axios": "1.2.2",
     "core-js": "3.27.1",
-    "pinia": "2.0.28",
-    "quasar": "2.11.3",
+    "pinia": "2.0.29",
+    "quasar": "2.11.5",
     "vue": "3.2.45",
     "vue-horizontal-timeline": "0.12.0",
     "vue-router": "4.1.6",
     "vue3-apexcharts": "1.4.1"
   },
   "devDependencies": {
-    "@quasar/app-webpack": "^3.6.2",
-    "@typescript-eslint/eslint-plugin": "^5.47.1",
-    "@typescript-eslint/parser": "^5.47.1",
-    "eslint": "^8.31.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-vue": "^9.8.0",
-    "prettier": "^2.8.1"
+    "@quasar/app-webpack": "^3.7.1",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-vue": "^9.9.0",
+    "prettier": "^2.8.3"
   },
   "browserslist": [
     "last 10 Chrome versions",

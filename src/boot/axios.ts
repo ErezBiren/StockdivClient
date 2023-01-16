@@ -1,5 +1,5 @@
 import { boot } from 'quasar/wrappers';
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosHeaders, AxiosInstance } from 'axios';
 import { stockdivStore } from '../stores/stockdivStore';
 import VueApexCharts from 'vue3-apexcharts';
 import VueHorizontalTimeline from 'vue-horizontal-timeline';
@@ -17,7 +17,10 @@ const api = axios.create({ baseURL: baseURLProd });
 api.interceptors.request.use(
   (config) => {
     if (config != null && config.headers != null) {
-      config.headers['Authorization'] = `Bearer ${stockdivStore().token}`;
+      (config.headers as unknown as AxiosHeaders).set(
+        'Authorization',
+        `Bearer ${stockdivStore().token}`
+      );
     }
     return config;
   },
