@@ -615,7 +615,7 @@
             step="0.0001"
             :disable="isStockDividend"
             hint="Share price"
-            :prefix="getCurrencySymbol"
+            :prefix="getCurrencySymbol(tickerCurrency)"
             :rules="[(val) => (val && val > 0) || 'Price is missing']"
           >
             <template v-slot:before>
@@ -644,7 +644,7 @@
             type="number"
             step="0.0001"
             hint="Total price"
-            :prefix="getCurrencySymbol"
+            :prefix="getCurrencySymbol(tickerCurrency)"
             :rules="[(val) => (val && val !== 0) || 'Total is missing']"
           />
         </q-card-section>
@@ -681,26 +681,20 @@
 </template>
 
 <script lang="ts">
-import { api } from 'src/boot/axios';
-import {
-  bus,
-  getTodayDate,
-  showAPIError,
-  showNotification,
-} from 'src/utils/utils';
-import { getCurrencySymbol } from '../utils/utils';
-import { defineComponent, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { stockdivStore } from '../stores/stockdivStore';
-import { ITransactionData } from 'src/utils/interfaces/ITransactionData';
-import { useRouter } from 'vue-router';
-import { ITickerUserData } from 'src/utils/interfaces/ITickerUserData';
-import { DividendFrequencyEnum } from 'src/utils/enums/DividendFrequencyEnum';
-import { date } from 'quasar';
-import { filters } from '../utils/utils';
-import axios, { AxiosError } from 'axios';
-import { IDividendHistoryData } from 'src/utils/interfaces/IDividendHistoryData';
-import { ITickerNews } from 'src/utils/interfaces/ITickerNews';
+import {api} from 'src/boot/axios';
+import {bus, getTodayDate, showAPIError, showNotification,} from 'src/utils/utils';
+import {filters, getCurrencySymbol} from '../utils/utils';
+import {defineComponent, ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {stockdivStore} from 'stores/stockdivStore';
+import {ITransactionData} from 'src/utils/interfaces/ITransactionData';
+import {ITickerUserData} from 'src/utils/interfaces/ITickerUserData';
+import {DividendFrequencyEnum} from 'src/utils/enums/DividendFrequencyEnum';
+import {date} from 'quasar';
+import axios, {AxiosError} from 'axios';
+import {IDividendHistoryData} from 'src/utils/interfaces/IDividendHistoryData';
+import {ITickerNews} from 'src/utils/interfaces/ITickerNews';
+
 export default defineComponent({
   name: 'tickerPage',
 
@@ -1858,12 +1852,11 @@ export default defineComponent({
           this.tickerDividendYield
         )}`;
       }
-      let tooltip = `${notes} <br/> ${tax}<br/> Frequency: ${
+      return `${notes} <br/> ${tax}<br/> Frequency: ${
         this.tickerFrequency
       }${averagePrice ? '<br/>' + averagePrice : ''}${
         divYield ? '<br/>' + divYield : ''
       }`;
-      return tooltip;
     },
     dailyChangePercentage(): number {
       if (this.tickerPrice - this.dailyChange !== 0) {

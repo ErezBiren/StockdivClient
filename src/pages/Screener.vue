@@ -152,7 +152,6 @@
           <q-tr>
             <q-td
               v-for="col in props.cols"
-              :class="col.__thClass"
               :key="col.name"
             >
               <template>
@@ -216,7 +215,7 @@
 
             <div
               class="row no-wrap justify-center"
-              v-if="item.dividendYield != 0 || item.dividendAmount != 0"
+              v-if="item.dividendYield !== 0 || item.dividendAmount !== 0"
             >
               <div
                 class="col-6 text-right cursor-pointer"
@@ -237,7 +236,7 @@
 
             <div
               class="row no-wrap justify-center"
-              v-if="item.frequency != 'Other' || item.yearsIncrease > 0"
+              v-if="item.frequency !== 'Other' || item.yearsIncrease > 0"
             >
               <div
                 class="col-6 text-right cursor-pointer"
@@ -257,7 +256,7 @@
 
             <div
               class="row no-wrap justify-center"
-              v-if="item.lastExDay != '' || item.lastPayDay != ''"
+              v-if="item.lastExDay !== '' || item.lastPayDay !== ''"
             >
               <div
                 class="col-6 text-right cursor-pointer"
@@ -326,7 +325,7 @@
 
             <div
               class="row no-wrap justify-center"
-              v-if="item.dgr1 != 0 || item.dgr3 != 0"
+              v-if="item.dgr1 !== 0 || item.dgr3 !== 0"
             >
               <div
                 class="col-6 text-right"
@@ -346,7 +345,7 @@
 
             <div
               class="row no-wrap justify-center"
-              v-if="item.dgr5 != 0 || item.dgr10 != 0"
+              v-if="item.dgr5 !== 0 || item.dgr10 !== 0"
             >
               <div
                 class="col-6 text-right"
@@ -485,7 +484,7 @@ import {
   showNotification,
 } from '../utils/utils';
 import { useRouter } from 'vue-router';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { ViewModeEnum } from 'src/utils/enums/ViewModeEnum';
 import { IViewModeSettings } from 'src/utils/interfaces/IViewSettings';
 import { date, QTableProps } from 'quasar';

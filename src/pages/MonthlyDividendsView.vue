@@ -15,7 +15,7 @@
               :key="event.id"
             >
               <div
-                :class="getEntryColor(event.eventType)"
+                :class="getEntryColor(event.eventType, event.projected)"
                 v-if="
                   (event.eventType === EventTypeEnum.PAYDAY && showPay) ||
                   (event.eventType === EventTypeEnum.EXDAY && showEx)
@@ -83,7 +83,7 @@ import { IMonthViewEvent } from 'src/utils/interfaces/IMonthViewEvent';
 import axios, { AxiosError } from 'axios';
 import { EventTypeEnum } from '../utils/enums/EventTypeEnum';
 import { api } from 'src/boot/axios';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { showAPIError } from 'src/utils/utils';
 import { useRouter } from 'vue-router';
 export default defineComponent({
@@ -113,9 +113,9 @@ export default defineComponent({
         path: `/ticker/${ticker}`,
       });
     },
-    getEntryColor(eventType: EventTypeEnum) {
-      if (eventType === EventTypeEnum.EXDAY)
-        return 'row no-wrap q-my-xs text-blue-5';
+    getEntryColor(eventType: EventTypeEnum, projected: boolean) {
+      if (projected) return 'row no-wrap q-my-xs text-purple-8';
+      else if (eventType === EventTypeEnum.EXDAY) return 'row no-wrap q-my-xs text-blue-5';
       else return 'row no-wrap q-my-xs text-green-5';
     },
     getMonthEvents() {

@@ -246,7 +246,7 @@
         ><q-img :src="'logo.png'" class="logo" />
         <div class="q-mt-sm">Settings</div>
         <q-space />
-        <div class="text-subtitle2">3.2.6</div></q-card-section
+        <div class="text-subtitle2">3.2.7</div></q-card-section
       >
       <div class="text-center q-mx-sm" style="font-size: 12px">
         Click
@@ -349,7 +349,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { api } from 'src/boot/axios';
 import { bus, isNumber, showAPIError, showNotification } from 'src/utils/utils';
 import { date, QInput } from 'quasar';
@@ -811,7 +811,7 @@ export default defineComponent({
           api.get('user/messages'),
         ])
         .then(
-          axios.spread(async (...responses) => {
+          axios.spread( (...responses) => {
             this.userName = responses[0].data;
             this.store.portfolios = responses[1].data;
             if (responses[1].data.length === 2) {
@@ -822,7 +822,7 @@ export default defineComponent({
             this.store.announcements = responses[3].data;
             if (this.showNoTransactionsDialog) return;
             if (this.router.currentRoute.value.fullPath === '/')
-              this.router.push({ path: '/overview' });
+              this.router.push({path: '/overview'});
             else if (this.router.currentRoute.value.fullPath.includes('ticker'))
               bus.emit('updateTickerPage');
             else if (

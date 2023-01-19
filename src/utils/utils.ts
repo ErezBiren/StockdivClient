@@ -1,6 +1,6 @@
 import { AxiosError, AxiosResponse } from 'axios';
 import { date, EventBus, Notify } from 'quasar';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 
 export const bus = new EventBus();
 const store = stockdivStore();
@@ -24,9 +24,6 @@ export const validateEmail = (email: string) => {
 };
 
 export const isNumber = (str: string): boolean => {
-  if (typeof str !== 'string') {
-    return false;
-  }
 
   if (str.trim() === '') {
     return false;

@@ -1,11 +1,10 @@
 import { DividendFrequencyEnum } from '../enums/DividendFrequencyEnum';
-import { SectorEnum } from '../enums/SectorEnum';
 
 export interface IPortfolioAsset {
   logoUrl: string;
   ticker: string;
   name: string;
-  sector: SectorEnum;
+  sector: string;
   shares: number;
   averagePrice: number;
   sharePrice: number;
@@ -25,6 +24,7 @@ export interface IPortfolioAsset {
   lastPayDay: string;
   dividendAmount: number;
   lastTotalDividend: number;
+  lastTotalDividendYearly: number;
   mvPortion: number;
   investedPortion: number;
 }

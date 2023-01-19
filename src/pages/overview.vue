@@ -337,7 +337,7 @@ import { IDiversification } from 'src/utils/interfaces/IDiversification';
 import { IPriceAndDate } from 'src/utils/interfaces/IPriceAndDate';
 import { showAPIError, bus, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { filters } from '../utils/utils';
 import { useRouter } from 'vue-router';
 import { IDividendAlert } from 'src/utils/interfaces/IDividendAlert';
@@ -1612,11 +1612,6 @@ export default defineComponent({
       return this.portfolioMarketValue - this.portfolioInvested < 0
         ? 'text-h6 text-red q-mt-sm'
         : 'text-h6 text-green q-mt-sm';
-    },
-    calculateTotalReturn(): number {
-      return (
-        this.portfolioMarketValue - this.portfolioInvested + this.dividendsSoFar
-      );
     },
   },
   mounted() {

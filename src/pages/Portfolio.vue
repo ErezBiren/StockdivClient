@@ -219,7 +219,6 @@
           <q-tr>
             <q-td
               v-for="col in props.cols"
-              :class="col.__thClass"
               :key="col.name"
             >
               <template v-if="col.name === 'invested'">
@@ -236,6 +235,12 @@
               </template>
               <template v-if="col.name === 'dailyChange'">
                 {{ filters.formatToCurrency(dcTotal) }}
+              </template>
+              <template v-if="col.name === 'yoc'">
+                {{ filters.formatToPercentage(yocPortfolio) }}
+              </template>
+              <template v-if="col.name === 'dividendYield'">
+                {{ filters.formatToPercentage(yieldPortfolio) }}
               </template>
               <template v-else> </template>
             </q-td>
@@ -450,7 +455,7 @@ import { api } from 'src/boot/axios';
 import { IPortfolioAsset } from 'src/utils/interfaces/IPortfolioAsset';
 import { defineComponent, ref } from 'vue';
 import { filters, showAPIError, showNotification, bus } from '../utils/utils';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { SortByEnum } from '../utils/enums/SortByEnum';
 import { SortDirectionEnum } from 'src/utils/enums/SortDirectionEnum';
 import { useRouter } from 'vue-router';
@@ -951,7 +956,8 @@ export default defineComponent({
       return value < 0 ? 'bg-red-5' : 'bg-green';
     },
     getExPayColor(value: string): string {
-      return date.isSameDate(new Date(), new Date(value), 'month')
+      if (new Date(value).getFullYear() < new Date().getFullYear() || new Date(value).getMonth() < new Date().getMonth()) return 'bg-green-11';
+      else return date.isSameDate(new Date(), new Date(value), 'month')
         ? 'bg-purple-2'
         : 'bg-light-blue-1';
     },
@@ -1001,6 +1007,20 @@ export default defineComponent({
         (current: number, prev: IPortfolioAsset) => current + prev.income,
         0
       );
+    },
+    yieldPortfolio(): number {
+      const lastDividendTotalYearly: number = this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.lastTotalDividendYearly,
+        0
+      );
+      return (lastDividendTotalYearly / this.mvTotal) * 100
+    },
+    yocPortfolio(): number {
+      const lastDividendTotalYearly: number = this.portfolioAssets.reduce(
+        (current: number, prev: IPortfolioAsset) => current + prev.lastTotalDividendYearly,
+        0
+      );
+      return (lastDividendTotalYearly / this.investedTotal) * 100
     },
     plTotal(): number {
       return this.portfolioAssets.reduce(

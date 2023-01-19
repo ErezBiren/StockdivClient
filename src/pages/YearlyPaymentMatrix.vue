@@ -208,7 +208,7 @@ import axios, { AxiosError } from 'axios';
 import { api } from 'src/boot/axios';
 import { showAPIError, bus, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { filters } from '../utils/utils';
 import { useRouter } from 'vue-router';
 import { SortByEnum } from 'src/utils/enums/SortByEnum';

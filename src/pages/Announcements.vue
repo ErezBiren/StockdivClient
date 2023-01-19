@@ -27,7 +27,7 @@ import { api } from 'src/boot/axios';
 import { showAPIError, showNotification } from 'src/utils/utils';
 import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 
 export default defineComponent({
   name: 'AnnouncementsPage',

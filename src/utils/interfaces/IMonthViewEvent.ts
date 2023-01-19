@@ -8,4 +8,5 @@ export interface IMonthViewEvent {
   amount: number;
   total: number;
   eventType: EventTypeEnum;
+  projected: boolean;
 }

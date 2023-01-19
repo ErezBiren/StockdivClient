@@ -24,7 +24,7 @@
         <q-card-section :class="getAlertColor(item.redFlag)">
           {{ item.alert }}
           <q-separator />
-          <div v-if="item.percentage != 0">
+          <div v-if="item.percentage !== 0">
             <q-icon class="q-mr-xs" :name="getArrow(item.percentage)" />{{
               filters.formatToPercentage(item.percentage)
             }}
@@ -37,7 +37,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { stockdivStore } from '../stores/stockdivStore';
+import { stockdivStore } from 'stores/stockdivStore';
 import { filters, showNotification } from '../utils/utils';
 import { useRouter } from 'vue-router';
 export default defineComponent({
