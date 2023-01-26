@@ -22,31 +22,6 @@
       <q-card-section>
         <div class="text-h6 q-mt-sm row no-wrap justify-center">
           Dividends so far: {{ filters.formatToCurrency(dividendsSoFar) }}
-          <q-icon
-            v-if="store.dividendAlerts.length > 0"
-            :color="getDividendAlertsIconColor"
-            :name="getDividendAlertsIcon"
-            class="cursor-pointer q-my-xs q-mx-sm"
-            @click="showDividendAlerts()"
-          >
-            <q-tooltip class="bg-indigo">Dividend Alerts</q-tooltip>
-          </q-icon>
-          <q-icon
-            color="blue"
-            name="event_note"
-            class="cursor-pointer q-my-xs q-mx-sm"
-            @click="gotoYearlyPaymentMatrix()"
-          >
-            <q-tooltip class="bg-indigo">Yearly payment matrix</q-tooltip>
-          </q-icon>
-          <q-icon
-            color="blue"
-            name="event"
-            class="cursor-pointer q-my-xs q-mx-sm"
-            @click="gotoDividendsThisMonth()"
-          >
-            <q-tooltip class="bg-indigo">Current month</q-tooltip>
-          </q-icon>
         </div>
         <div class="text-h6 q-mt-sm">
           {{ nextDividendInfo }}
@@ -253,24 +228,49 @@
     </q-card>
 
     <q-page-sticky position="top">
-      <div class="shadow-8 q-pa-sm bg-light-blue-1 text-center">
+      <div class="shadow-12 q-pa-sm bg-light-blue-1 text-center">
         <div class="text-h5 row no-wrap justify-center">
           {{ store.selectedPortfolio }}<q-space />
           <q-icon
+            v-if="store.dividendAlerts.length > 0"
+            :color="getDividendAlertsIconColor"
+            :name="getDividendAlertsIcon"
+            class="cursor-pointer q-my-xs q-mx-sm shadow-5"
+            @click="showDividendAlerts()"
+          >
+            <q-tooltip class="bg-indigo">Show Dividend Alerts</q-tooltip>
+          </q-icon>
+          <q-icon
+            color="blue"
+            name="event_note"
+            class="cursor-pointer q-my-xs q-mx-sm shadow-5"
+            @click="gotoYearlyPaymentMatrix()"
+          >
+            <q-tooltip class="bg-indigo">Show Yearly Payment</q-tooltip>
+          </q-icon>
+          <q-icon
+            color="blue"
+            name="event"
+            class="cursor-pointer q-my-xs q-mx-sm shadow-5"
+            @click="gotoDividendsThisMonth()"
+          >
+            <q-tooltip class="bg-indigo">Show Current Month</q-tooltip>
+          </q-icon>
+          <q-icon
             color="blue"
             name="account_balance_wallet"
-            class="cursor-pointer q-my-xs q-ml-sm"
+            class="cursor-pointer q-my-xs q-ml-sm shadow-5"
             @click="gotoPortfolio()"
           >
-            <q-tooltip class="bg-indigo">Show assets</q-tooltip>
+            <q-tooltip class="bg-indigo">Show Assets</q-tooltip>
           </q-icon>
           <q-icon
             color="blue"
             name="filter_list"
-            class="cursor-pointer q-my-xs q-ml-sm"
+            class="cursor-pointer q-my-xs q-mx-sm shadow-5"
             @click="gotoScreener()"
           >
-            <q-tooltip class="bg-indigo">Show screener</q-tooltip> </q-icon
+            <q-tooltip class="bg-indigo">Show Screener</q-tooltip> </q-icon
           ><q-separator vertical />
           <q-icon size="xs" name="more_vert" class="q-mt-sm cursor-pointer">
             <q-menu fit anchor="bottom left" self="top left" auto-close>
