@@ -723,15 +723,15 @@ export default defineComponent({
                 if (content[line].trim() === '') continue;
                 theLine = content[line].split(',');
                 importTicker = theLine[0].trim().toUpperCase();
-                importShares = parseFloat(theLine[1]);
-                importPrice = Math.abs(parseFloat(theLine[2]));
+                importShares = parseFloat(theLine[1].trim());
+                importPrice = Math.abs(parseFloat(theLine[2].trim()));
                 if (this.isSharePrice)
-                  importSharePrice = Math.abs(parseFloat(theLine[2]));
+                  importSharePrice = Math.abs(parseFloat(theLine[2].trim()));
                 else
                   importSharePrice = Math.abs(
                     Math.round((importPrice / importShares) * 10000) / 10000
                   );
-                importDate = `${theLine[3]}`;
+                importDate = theLine[3].trim();
                 importPortfolio = theLine[4].trim();
                 importCurrency = 'USD';
                 if (theLine.length > 6) importCurrency = theLine[6].trim();
