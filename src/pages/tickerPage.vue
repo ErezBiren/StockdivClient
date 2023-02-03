@@ -1669,6 +1669,7 @@ export default defineComponent({
           axios.spread((...responses) => {
             this.timelineItems = responses[0].data;
             let withTransactions = false;
+            this.tickerShares = 0;
             this.timelineItems.forEach(
               (element: {
                 title: string;
